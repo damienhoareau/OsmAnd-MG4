@@ -10,11 +10,11 @@ on:
       abi:
         description: 'CPU architecture of the head unit'
         type: choice
-        default: Armonly
+        default: Armv7
         options:
-          - Armonly   # arm64 + armv7, safest choice
+          - Armv7     # MG4 head unit: system apps ship armeabi-v7a only
+          - Armonly   # arm64 + armv7
           - Arm64
-          - Armv7
           - Fat       # arm + x86
   push:
     branches:
@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 90
 
     env:
-      ABI: ${{ inputs.abi || 'Armonly' }}
+      ABI: ${{ inputs.abi || 'Armv7' }}
 
     steps:
       # OsmAnd's Gradle files expect the layout <root>/android/OsmAnd and <root>/resources
