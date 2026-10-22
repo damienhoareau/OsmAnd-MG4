@@ -32,6 +32,14 @@
 		android:title="@string/battery_saving_mode"
 		tools:icon="@drawable/ic_action_battery" />
 
+	<net.osmand.plus.settings.preferences.SwitchPreferenceEx
+		android:key="car_mode_ui"
+		android:layout="@layout/preference_with_descr_dialog_and_switch"
+		android:summaryOff="@string/shared_string_off"
+		android:summaryOn="@string/shared_string_on"
+		android:title="@string/car_mode_ui"
+		tools:icon="@drawable/ic_action_car_info" />
+
 	<Preference
 		android:layout="@layout/simple_divider_item"
 		android:selectable="false" />

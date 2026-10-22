@@ -5499,6 +5499,8 @@ Download tile maps directly, or copy them as SQLite database files to OsmAnd\'s 
     <string name="local_indexes_cat_voice">Voice prompts (recorded)</string>
     <string name="ttsvoice">TTS voice</string>
     <string name="battery_saving_mode">Battery saving mode</string>
+    <string name="car_mode_ui">Car interface</string>
+    <string name="car_mode_ui_descr">Shows a large maneuver banner, arrival time and big map buttons on top of the map while navigating, similar to the Android Auto screen.</string>
     <string name="trace_rendering">Performance debug info</string>
     <string name="trace_rendering_descr">Display the rendering and navigation performance.</string>
     <string name="installing_new_resources">Unpacking new data…</string>

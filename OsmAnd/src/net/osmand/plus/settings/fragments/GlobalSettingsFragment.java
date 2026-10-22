@@ -55,6 +55,7 @@ public class GlobalSettingsFragment extends BaseSettingsFragment
 		setupPreferredLocalePref();
 		setupMapRenderingEnginePref();
 		setupBatterySavingModePref();
+		setupCarModeUiPref();
 		setupExternalStorageDirPref();
 		setupMediaStoragePref();
 
@@ -275,6 +276,12 @@ public class GlobalSettingsFragment extends BaseSettingsFragment
 		preference.setDescription(R.string.battery_saving_mode_descr);
 		// only the OpenGL (version 2) renderer limits its frame rate
 		preference.setVisible(settings.USE_OPENGL_RENDER.get());
+	}
+
+	private void setupCarModeUiPref() {
+		SwitchPreferenceEx preference = requirePreference(settings.CAR_MODE_UI.getId());
+		preference.setIcon(getPersistentPrefIcon(R.drawable.ic_action_car_info));
+		preference.setDescription(R.string.car_mode_ui_descr);
 	}
 
 	private void setupSendAnonymousDataPref() {

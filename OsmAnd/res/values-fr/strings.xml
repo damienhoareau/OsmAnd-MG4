@@ -4342,6 +4342,8 @@
     <string name="delete_widget_description">Ce widget va être retiré. Vous pourrez l\'ajouter à nouveau depuis le menu \"Configurer l\'écran\".</string>
     <string name="delete_widget">Retirer le widget ?</string>
     <string name="battery_saving_mode">Mode économie d\'énergie</string>
+    <string name="car_mode_ui">Interface voiture</string>
+    <string name="car_mode_ui_descr">Affiche pendant la navigation un grand bandeau de manœuvre, l\'heure d\'arrivée et de gros boutons sur la carte, comme l\'écran Android Auto.</string>
     <string name="graph_axis">Axes du graphique</string>
     <string name="y_axis_description">Sélectionnez jusqu\'à deux options d\'ordonnées.</string>
     <string name="app_mode_suv">SUV</string>

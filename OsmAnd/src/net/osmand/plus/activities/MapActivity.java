@@ -57,6 +57,7 @@ import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
 import net.osmand.plus.Version;
 import net.osmand.plus.auto.NavigationSession;
+import net.osmand.plus.auto.carmode.CarModeOverlay;
 import net.osmand.plus.base.ContextMenuFragment;
 import net.osmand.plus.base.MapViewTrackingUtilities;
 import net.osmand.plus.chooseplan.ChoosePlanFragment;
@@ -176,6 +177,8 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 	private BroadcastReceiver screenOffReceiver;
 	private WidgetsVisibilityHelper mapWidgetsVisibilityHelper;
 	private ExtendedMapActivity extendedMapActivity;
+	@Nullable
+	private CarModeOverlay carModeOverlay;
 
 	private LockHelper lockHelper;
 	@Nullable
@@ -1127,6 +1130,24 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 		lockHelper.onStart();
 		app.getNotificationHelper().showNotifications();
 		extendedMapActivity.onStart(this);
+		updateCarModeOverlay();
+	}
+
+	/** Adds or removes the Android Auto-like overlay according to the "Car interface" setting. */
+	private void updateCarModeOverlay() {
+		ViewGroup content = findViewById(android.R.id.content);
+		if (content == null) {
+			return;
+		}
+		boolean enabled = app.getSettings().CAR_MODE_UI.get();
+		if (enabled && carModeOverlay == null) {
+			carModeOverlay = new CarModeOverlay(this, app);
+			content.addView(carModeOverlay, new ViewGroup.LayoutParams(
+					ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+		} else if (!enabled && carModeOverlay != null) {
+			content.removeView(carModeOverlay);
+			carModeOverlay = null;
+		}
 	}
 
 	@Override

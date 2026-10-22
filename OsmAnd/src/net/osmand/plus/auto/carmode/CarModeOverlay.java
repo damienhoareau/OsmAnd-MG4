@@ -1,0 +1,270 @@
+package net.osmand.plus.auto.carmode;
+
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.format.DateFormat;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import net.osmand.plus.OsmandApplication;
+import net.osmand.plus.R;
+import net.osmand.plus.auto.TripUtils;
+import net.osmand.plus.routing.NextDirectionInfo;
+import net.osmand.plus.routing.RoutingHelper;
+import net.osmand.plus.settings.enums.ThemeUsageContext;
+import net.osmand.plus.views.OsmandMapTileView;
+import net.osmand.plus.views.mapwidgets.TurnDrawable;
+import net.osmand.router.TurnType;
+import net.osmand.util.Algorithms;
+
+import java.util.Date;
+
+/**
+ * Native-view replacement for the Android Auto NavigationTemplate: a maneuver banner (top left),
+ * an ETA bar (bottom left) and a column of large map buttons (right).
+ * It only reads state from RoutingHelper and drives OsmandMapTileView, so it can be
+ * attached on top of MapActivity without touching the existing HUD.
+ */
+public class CarModeOverlay extends FrameLayout {
+
+	private static final long REFRESH_INTERVAL_MS = 1000;
+
+	private final OsmandApplication app;
+	private final RoutingHelper routingHelper;
+	private final Handler handler = new Handler(Looper.getMainLooper());
+
+	private final LinearLayout maneuverPanel;
+	private final ImageView turnImage;
+	private final TextView distanceText;
+	private final TextView streetText;
+	private final TurnDrawable turnDrawable;
+
+	private final LinearLayout etaPanel;
+	private final TextView etaText;
+	private final TextView etaDetailsText;
+
+	private final Runnable refreshTask = new Runnable() {
+		@Override
+		public void run() {
+			refresh();
+			handler.postDelayed(this, REFRESH_INTERVAL_MS);
+		}
+	};
+
+	public CarModeOverlay(@NonNull Context context, @NonNull OsmandApplication app) {
+		super(context);
+		this.app = app;
+		this.routingHelper = app.getRoutingHelper();
+		// Let touches fall through to the map except on our own controls.
+		setClickable(false);
+		setFocusable(false);
+
+		// Keep the controls clear of system bars (status bar, navigation bar).
+		ViewCompat.setOnApplyWindowInsetsListener(this, (v, insets) -> {
+			Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+			v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+			return insets;
+		});
+
+		turnDrawable = new TurnDrawable(context, false);
+
+		// ---- Maneuver banner (top left) ----
+		maneuverPanel = new LinearLayout(context);
+		maneuverPanel.setOrientation(LinearLayout.HORIZONTAL);
+		maneuverPanel.setGravity(Gravity.CENTER_VERTICAL);
+		maneuverPanel.setBackground(roundedBackground(Color.parseColor("#E6202124"), dp(16)));
+		maneuverPanel.setPadding(dp(16), dp(12), dp(20), dp(12));
+
+		turnImage = new ImageView(context);
+		turnImage.setImageDrawable(turnDrawable);
+		maneuverPanel.addView(turnImage, new LinearLayout.LayoutParams(dp(88), dp(88)));
+
+		LinearLayout texts = new LinearLayout(context);
+		texts.setOrientation(LinearLayout.VERTICAL);
+		texts.setPadding(dp(16), 0, 0, 0);
+
+		distanceText = makeText(34, true);
+		streetText = makeText(20, false);
+		streetText.setMaxLines(2);
+		texts.addView(distanceText);
+		texts.addView(streetText);
+		maneuverPanel.addView(texts, new LinearLayout.LayoutParams(
+				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+
+		LayoutParams maneuverParams = new LayoutParams(dp(380), LayoutParams.WRAP_CONTENT,
+				Gravity.TOP | Gravity.START);
+		maneuverParams.setMargins(dp(16), dp(16), 0, 0);
+		addView(maneuverPanel, maneuverParams);
+
+		// ---- ETA bar (bottom left) ----
+		etaPanel = new LinearLayout(context);
+		etaPanel.setOrientation(LinearLayout.VERTICAL);
+		etaPanel.setBackground(roundedBackground(Color.parseColor("#E6202124"), dp(16)));
+		etaPanel.setPadding(dp(20), dp(10), dp(20), dp(10));
+		etaText = makeText(28, true);
+		etaDetailsText = makeText(18, false);
+		etaPanel.addView(etaText);
+		etaPanel.addView(etaDetailsText);
+
+		LayoutParams etaParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+				Gravity.BOTTOM | Gravity.START);
+		etaParams.setMargins(dp(16), 0, 0, dp(16));
+		addView(etaPanel, etaParams);
+
+		// ---- Map buttons (right) ----
+		LinearLayout buttons = new LinearLayout(context);
+		buttons.setOrientation(LinearLayout.VERTICAL);
+		buttons.addView(makeButton(R.drawable.ic_zoom_in, v -> {
+			getMapView().zoomIn();
+		}));
+		buttons.addView(makeButton(R.drawable.ic_zoom_out, v -> {
+			getMapView().zoomOut();
+		}));
+		buttons.addView(makeButton(R.drawable.ic_my_location, v -> {
+			getMapView().backToLocation();
+		}));
+		buttons.addView(makeButton(R.drawable.ic_action_close, v -> {
+			app.stopNavigation();
+			refresh();
+		}));
+
+		LayoutParams buttonsParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+				Gravity.END | Gravity.CENTER_VERTICAL);
+		buttonsParams.setMargins(0, 0, dp(16), 0);
+		addView(buttons, buttonsParams);
+
+		refresh();
+	}
+
+	@Override
+	protected void onAttachedToWindow() {
+		super.onAttachedToWindow();
+		handler.removeCallbacks(refreshTask);
+		handler.post(refreshTask);
+	}
+
+	@Override
+	protected void onDetachedFromWindow() {
+		handler.removeCallbacks(refreshTask);
+		super.onDetachedFromWindow();
+	}
+
+	@NonNull
+	private OsmandMapTileView getMapView() {
+		return app.getOsmandMap().getMapView();
+	}
+
+	private void refresh() {
+		boolean navigating = routingHelper.isRouteCalculated() && routingHelper.isFollowingMode();
+		maneuverPanel.setVisibility(navigating ? VISIBLE : GONE);
+		etaPanel.setVisibility(navigating ? VISIBLE : GONE);
+		if (!navigating) {
+			return;
+		}
+		updateManeuver();
+		updateEta();
+	}
+
+	private void updateManeuver() {
+		boolean deviated = routingHelper.isDeviatedFromRoute();
+		NextDirectionInfo info = routingHelper.getNextRouteDirectionInfo(new NextDirectionInfo(), true);
+		TurnType turnType = null;
+		int distance = 0;
+		int imminent = 0;
+		if (deviated) {
+			boolean leftSide = app.getSettings().DRIVING_REGION.get().leftHandDriving;
+			turnType = TurnType.valueOf(TurnType.OFFR, leftSide);
+			distance = (int) routingHelper.getRouteDeviation();
+		} else if (info != null && info.distanceTo >= 0 && info.directionInfo != null) {
+			turnType = info.directionInfo.getTurnType();
+			distance = info.distanceTo;
+			imminent = info.imminent;
+		}
+
+		turnDrawable.setTurnType(turnType);
+		turnDrawable.setTurnImminent(imminent, deviated);
+		turnDrawable.updateColors(app.getDaynightHelper().isNightMode(ThemeUsageContext.MAP));
+		turnImage.invalidate();
+
+		distanceText.setText(TripUtils.getFormattedDistanceStr(app, distance));
+		String street = deviated ? null : TripUtils.defineStreetName(app, info);
+		streetText.setText(Algorithms.isEmpty(street) ? "" : street);
+		streetText.setVisibility(Algorithms.isEmpty(street) ? GONE : VISIBLE);
+	}
+
+	private void updateEta() {
+		int leftSeconds = routingHelper.getLeftTime();
+		int leftMeters = routingHelper.getLeftDistance();
+		if (leftSeconds < 0) {
+			etaText.setText("--");
+		} else {
+			Date arrival = new Date(System.currentTimeMillis() + leftSeconds * 1000L);
+			etaText.setText(DateFormat.getTimeFormat(getContext()).format(arrival));
+		}
+		etaDetailsText.setText(formatDuration(leftSeconds) + "  ·  "
+				+ TripUtils.getFormattedDistanceStr(app, leftMeters));
+	}
+
+	@NonNull
+	private static String formatDuration(int seconds) {
+		if (seconds < 0) {
+			return "--";
+		}
+		int minutes = Math.round(seconds / 60f);
+		if (minutes < 60) {
+			return minutes + " min";
+		}
+		return (minutes / 60) + " h " + String.format("%02d", minutes % 60) + " min";
+	}
+
+	@NonNull
+	private TextView makeText(float sp, boolean bold) {
+		TextView tv = new TextView(getContext());
+		tv.setTextColor(Color.WHITE);
+		tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+		tv.setTypeface(Typeface.DEFAULT, bold ? Typeface.BOLD : Typeface.NORMAL);
+		return tv;
+	}
+
+	@NonNull
+	private ImageButton makeButton(@DrawableRes int iconId, @NonNull OnClickListener listener) {
+		ImageButton button = new ImageButton(getContext());
+		button.setImageResource(iconId);
+		button.setColorFilter(Color.WHITE);
+		button.setScaleType(ImageView.ScaleType.CENTER);
+		button.setBackground(roundedBackground(Color.parseColor("#E6202124"), dp(16)));
+		button.setOnClickListener(listener);
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(72), dp(72));
+		params.setMargins(0, 0, 0, dp(12));
+		button.setLayoutParams(params);
+		return button;
+	}
+
+	@NonNull
+	private GradientDrawable roundedBackground(int color, int radiusPx) {
+		GradientDrawable drawable = new GradientDrawable();
+		drawable.setColor(color);
+		drawable.setCornerRadius(radiusPx);
+		return drawable;
+	}
+
+	private int dp(int value) {
+		return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+				getResources().getDisplayMetrics()));
+	}
+}
