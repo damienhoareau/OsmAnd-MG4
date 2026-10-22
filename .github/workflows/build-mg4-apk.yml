@@ -1,0 +1,90 @@
+name: Build MG4 debug APK
+
+# Builds the "OsmAnd Nightly" debug APK (package net.osmand.dev, so it installs next to an
+# existing OsmAnd) with the OpenGL core, which is downloaded precompiled. The legacy C++ core
+# is NOT built here.
+
+on:
+  workflow_dispatch:
+    inputs:
+      abi:
+        description: 'CPU architecture of the head unit'
+        type: choice
+        default: Armonly
+        options:
+          - Armonly   # arm64 + armv7, safest choice
+          - Arm64
+          - Armv7
+          - Fat       # arm + x86
+  push:
+    branches:
+      - car-mode-ui-step1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-mg4-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    env:
+      ABI: ${{ inputs.abi || 'Armonly' }}
+
+    steps:
+      # OsmAnd's Gradle files expect the layout <root>/android/OsmAnd and <root>/resources
+      - name: Checkout this fork
+        uses: actions/checkout@v7
+        with:
+          path: android
+
+      - name: Checkout OsmAnd-resources
+        uses: actions/checkout@v7
+        with:
+          repository: osmandapp/OsmAnd-resources
+          path: resources
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v6
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        working-directory: ./android
+        run: chmod +x gradlew
+
+      - name: Build APK
+        working-directory: ./android
+        env:
+          # buildOsmAndCore runs old-ndk-build.sh, which does nothing when no NDK is set.
+          # Blank both variables so the legacy native core is skipped (the OpenGL core
+          # comes precompiled from builder.osmand.net).
+          ANDROID_NDK: ''
+          ANDROID_NDK_ROOT: ''
+          APP_EDITION: mg4-car-ui
+        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx4g -Dfile.encoding=UTF-8" --no-daemon "assembleNightlyFreeOpengl${ABI}Debug"
+
+      - name: Rename APK
+        working-directory: ./android
+        run: |
+          short_sha="$(git log -n 1 --format='%h')"
+          for apk in OsmAnd/build/outputs/apk/*/*/*.apk; do
+            mv "$apk" "${apk%.apk}-${short_sha}.apk"
+          done
+          ls -lh OsmAnd/build/outputs/apk/*/*/*.apk
+
+      - name: Archive APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: mg4-debug-apk-${{ env.ABI }}
+          path: android/OsmAnd/build/outputs/apk/*/*/*.apk
+          retention-days: 30
+          if-no-files-found: error
