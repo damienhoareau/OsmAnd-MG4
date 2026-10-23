@@ -12,6 +12,9 @@ on:
       screen_density:
         description: 'Emulated screen density (dpi)'
         default: '240'
+      overscan:
+        description: 'Space taken by the head-unit system bars: left,top,right,bottom (px)'
+        default: '175,80,0,0'
   push:
     branches:
       - car-mode-ui-step1
@@ -21,7 +24,7 @@ on:
       - 'OsmAnd/src/net/osmand/plus/auto/carmode/**'
 
 permissions:
-  contents: read
+  contents: write   # needed to publish screenshots to the preview-shots branch
 
 concurrency:
   group: mg4-emulator-preview-${{ github.ref }}
@@ -75,6 +78,7 @@ jobs:
         env:
           SCREEN_SIZE: ${{ inputs.screen_size || '1920x720' }}
           SCREEN_DENSITY: ${{ inputs.screen_density || '240' }}
+          OVERSCAN: ${{ inputs.overscan || '175,80,0,0' }}
         with:
           api-level: 28
           arch: x86_64
@@ -94,3 +98,17 @@ jobs:
           path: android/preview-out/
           retention-days: 14
           if-no-files-found: warn
+
+      - name: Publish screenshots to branch preview-shots
+        if: always()
+        working-directory: ./android
+        run: |
+          set -e
+          d="$(mktemp -d)"
+          cp -r preview-out/. "$d/"
+          cd "$d"
+          git init -q
+          git checkout -q -b preview-shots
+          git add -A
+          git -c user.name=github-actions -c user.email=actions@github.com commit -q -m "Preview screenshots for ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" preview-shots

@@ -15,6 +15,8 @@ shot() { adb exec-out screencap -p > "$OUT/$1.png" || true; }
 # Head unit-like screen (override with SCREEN_SIZE / SCREEN_DENSITY).
 adb shell wm size "${SCREEN_SIZE:-1920x720}"
 adb shell wm density "${SCREEN_DENSITY:-240}"
+# Space taken by the head unit's own top bar and left rail (estimated from photos).
+adb shell wm overscan "${OVERSCAN:-175,80,0,0}" || true
 
 adb install -r "$APK" || { echo "install failed"; exit 1; }
 for perm in ACCESS_FINE_LOCATION ACCESS_COARSE_LOCATION READ_EXTERNAL_STORAGE WRITE_EXTERNAL_STORAGE; do
