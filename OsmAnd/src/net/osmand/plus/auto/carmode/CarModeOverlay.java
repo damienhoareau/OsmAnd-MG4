@@ -193,11 +193,11 @@ public class CarModeOverlay extends FrameLayout {
 		turnDrawable.setTurnImminent(0, false);
 		turnDrawable.updateColors(app.getDaynightHelper().isNightMode(ThemeUsageContext.MAP));
 		turnImage.invalidate();
-		distanceText.setText("350 m");
-		streetText.setText("Rue Général de Gaulle");
+		setTextIfChanged(distanceText, "350 m");
+		setTextIfChanged(streetText, "Rue Général de Gaulle");
 		streetText.setVisibility(VISIBLE);
-		etaText.setText("23:27");
-		etaDetailsText.setText("14 min  ·  7,2 km");
+		setTextIfChanged(etaText, "23:27");
+		setTextIfChanged(etaDetailsText, "14 min  ·  7,2 km");
 	}
 
 	private void updateManeuver() {
@@ -221,9 +221,9 @@ public class CarModeOverlay extends FrameLayout {
 		turnDrawable.updateColors(app.getDaynightHelper().isNightMode(ThemeUsageContext.MAP));
 		turnImage.invalidate();
 
-		distanceText.setText(TripUtils.getFormattedDistanceStr(app, distance));
+		setTextIfChanged(distanceText, TripUtils.getFormattedDistanceStr(app, distance));
 		String street = deviated ? null : TripUtils.defineStreetName(app, info);
-		streetText.setText(Algorithms.isEmpty(street) ? "" : street);
+		setTextIfChanged(streetText, Algorithms.isEmpty(street) ? "" : street);
 		streetText.setVisibility(Algorithms.isEmpty(street) ? GONE : VISIBLE);
 	}
 
@@ -231,12 +231,12 @@ public class CarModeOverlay extends FrameLayout {
 		int leftSeconds = routingHelper.getLeftTime();
 		int leftMeters = routingHelper.getLeftDistance();
 		if (leftSeconds < 0) {
-			etaText.setText("--");
+			setTextIfChanged(etaText, "--");
 		} else {
 			Date arrival = new Date(System.currentTimeMillis() + leftSeconds * 1000L);
-			etaText.setText(DateFormat.getTimeFormat(getContext()).format(arrival));
+			setTextIfChanged(etaText, DateFormat.getTimeFormat(getContext()).format(arrival));
 		}
-		etaDetailsText.setText(formatDuration(leftSeconds) + "  ·  "
+		setTextIfChanged(etaDetailsText, formatDuration(leftSeconds) + "  ·  "
 				+ TripUtils.getFormattedDistanceStr(app, leftMeters));
 	}
 
@@ -250,6 +250,13 @@ public class CarModeOverlay extends FrameLayout {
 			return minutes + " min";
 		}
 		return (minutes / 60) + " h " + String.format("%02d", minutes % 60) + " min";
+	}
+
+	/** Avoids redundant updates (and accessibility events) on the once-per-second refresh. */
+	private static void setTextIfChanged(@NonNull TextView view, @NonNull CharSequence text) {
+		if (!text.toString().contentEquals(view.getText())) {
+			view.setText(text);
+		}
 	}
 
 	@NonNull

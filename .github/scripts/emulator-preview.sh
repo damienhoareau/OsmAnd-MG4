@@ -76,7 +76,14 @@ if m:
     l, t, r, b = map(int, m.groups())
     print((l + r) // 2, (t + b) // 2)
 PY
-if [ -s "$OUT/skip-tap.txt" ]; then adb shell input tap $(cat "$OUT/skip-tap.txt"); fi
+if [ -s "$OUT/skip-tap.txt" ] && grep -Eq '^[0-9]+ [0-9]+$' "$OUT/skip-tap.txt"; then
+  adb shell input tap $(cat "$OUT/skip-tap.txt")
+else
+  # Fallback: SKIP DOWNLOAD sits at the bottom right of the sheet (about 94% / 94% of the screen).
+  W="${SCREEN_SIZE:-1744x640}"; H="${W#*x}"; W="${W%x*}"
+  echo "fallback tap" >> "$OUT/notes.txt"
+  adb shell input tap $((W * 94 / 100)) $((H * 94 / 100))
+fi
 for t in 15 30 45; do
   sleep 15
   shot "car-ui-$t"s
