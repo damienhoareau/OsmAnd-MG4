@@ -12,6 +12,17 @@ mkdir -p "$OUT"
 
 shot() { adb exec-out screencap -p > "$OUT/$1.png" || true; }
 
+# uiautomator dump often fails while the map is animating: retry a few times.
+dump_ui() {
+  for i in 1 2 3 4 5 6; do
+    if adb shell uiautomator dump /sdcard/ui.xml 2>&1 | grep -q "dumped to"; then
+      adb pull /sdcard/ui.xml "$1" >/dev/null 2>&1 && return 0
+    fi
+    sleep 3
+  done
+  return 1
+}
+
 # Screen = the area OsmAnd gets on the head unit (about 90% of the 1920x720 panel, estimated from
 # photos). Hide the emulator's own status/navigation bars: the head unit has none in that area.
 adb shell wm size "${SCREEN_SIZE:-1744x640}"
@@ -56,7 +67,7 @@ adb exec-out run-as "$PKG" ls -la shared_prefs > "$OUT/shared-prefs-ls.txt" 2>&1
 adb shell am start -n "$PKG/$ACT"
 sleep 20
 # Dismiss the "Welcome / download maps" sheet shown on first start by tapping SKIP DOWNLOAD.
-adb shell uiautomator dump /sdcard/ui-skip.xml >/dev/null 2>&1 && adb pull /sdcard/ui-skip.xml "$OUT/ui-skip.xml" >/dev/null 2>&1 || true
+dump_ui "$OUT/ui-skip.xml" || echo "ui dump for skip failed" >> "$OUT/notes.txt"
 python3 - "$OUT/ui-skip.xml" > "$OUT/skip-tap.txt" 2>&1 <<'PY' || true
 import re, sys
 x = open(sys.argv[1], encoding="utf-8").read()
@@ -69,7 +80,7 @@ if [ -s "$OUT/skip-tap.txt" ]; then adb shell input tap $(cat "$OUT/skip-tap.txt
 for t in 15 30 45; do
   sleep 15
   shot "car-ui-$t"s
-  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui-$t.xml" >/dev/null 2>&1 || true
+  dump_ui "$OUT/ui-$t.xml" || true
 done
 adb logcat -d -t 4000 > "$OUT/logcat.txt" || true
 adb logcat -d -s CarModeOverlay:I > "$OUT/carmode-log.txt" || true
