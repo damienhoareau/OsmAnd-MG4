@@ -1921,6 +1921,8 @@ public class OsmandSettings {
 
 	public final OsmandPreference<Boolean> BATTERY_SAVING_MODE = new BooleanPreference(this, "battery_saving", false).makeGlobal().makeShared();
 	public final OsmandPreference<Boolean> CAR_MODE_UI = new BooleanPreference(this, "car_mode_ui", false).makeGlobal().makeShared();
+	// Hidden (no UI): fills the car interface with sample data, used for emulator screenshots.
+	public final OsmandPreference<Boolean> CAR_MODE_UI_DEMO = new BooleanPreference(this, "car_mode_ui_demo", false).makeGlobal();
 
 	public final OsmandPreference<Boolean> SIMULATE_OBD_DATA = new BooleanPreference(this, "simulate_obd_data", false).makeGlobal().makeShared();
 

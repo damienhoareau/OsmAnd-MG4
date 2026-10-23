@@ -170,6 +170,10 @@ public class CarModeOverlay extends FrameLayout {
 	}
 
 	private void refresh() {
+		if (app.getSettings().CAR_MODE_UI_DEMO.get()) {
+			showDemo();
+			return;
+		}
 		boolean navigating = routingHelper.isRouteCalculated() && routingHelper.isFollowingMode();
 		maneuverPanel.setVisibility(navigating ? VISIBLE : GONE);
 		etaPanel.setVisibility(navigating ? VISIBLE : GONE);
@@ -178,6 +182,22 @@ public class CarModeOverlay extends FrameLayout {
 		}
 		updateManeuver();
 		updateEta();
+	}
+
+	/** Sample values so the layout can be checked without a calculated route (emulator screenshots). */
+	private void showDemo() {
+		maneuverPanel.setVisibility(VISIBLE);
+		etaPanel.setVisibility(VISIBLE);
+		boolean leftSide = app.getSettings().DRIVING_REGION.get().leftHandDriving;
+		turnDrawable.setTurnType(TurnType.valueOf(TurnType.TR, leftSide));
+		turnDrawable.setTurnImminent(0, false);
+		turnDrawable.updateColors(app.getDaynightHelper().isNightMode(ThemeUsageContext.MAP));
+		turnImage.invalidate();
+		distanceText.setText("350 m");
+		streetText.setText("Rue Général de Gaulle");
+		streetText.setVisibility(VISIBLE);
+		etaText.setText("23:27");
+		etaDetailsText.setText("14 min  ·  7,2 km");
 	}
 
 	private void updateManeuver() {
