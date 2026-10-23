@@ -1140,6 +1140,8 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 			return;
 		}
 		boolean enabled = app.getSettings().CAR_MODE_UI.get();
+		android.util.Log.i("CarModeOverlay", "enabled=" + enabled + " overlayExists=" + (carModeOverlay != null)
+				+ " demo=" + app.getSettings().CAR_MODE_UI_DEMO.get());
 		if (enabled && carModeOverlay == null) {
 			carModeOverlay = new CarModeOverlay(this, app);
 			content.addView(carModeOverlay, new ViewGroup.LayoutParams(

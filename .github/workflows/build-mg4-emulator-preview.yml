@@ -7,14 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       screen_size:
-        description: 'Emulated screen size (WxH)'
-        default: '1920x720'
+        description: 'Emulated screen size (WxH): the area OsmAnd gets on the head unit'
+        default: '1744x640'
       screen_density:
         description: 'Emulated screen density (dpi)'
         default: '240'
-      overscan:
-        description: 'Space taken by the head-unit system bars: left,top,right,bottom (px)'
-        default: '175,80,0,0'
   push:
     branches:
       - car-mode-ui-step1
@@ -22,6 +19,7 @@ on:
       - '.github/workflows/build-mg4-emulator-preview.yml'
       - '.github/scripts/emulator-preview.sh'
       - 'OsmAnd/src/net/osmand/plus/auto/carmode/**'
+      - 'OsmAnd/src/net/osmand/plus/views/layers/MapInfoLayer.java'
 
 permissions:
   contents: write   # needed to publish screenshots to the preview-shots branch
@@ -76,9 +74,8 @@ jobs:
       - name: Run in emulator and take screenshots
         uses: reactivecircus/android-emulator-runner@v2
         env:
-          SCREEN_SIZE: ${{ inputs.screen_size || '1920x720' }}
+          SCREEN_SIZE: ${{ inputs.screen_size || '1744x640' }}
           SCREEN_DENSITY: ${{ inputs.screen_density || '240' }}
-          OVERSCAN: ${{ inputs.overscan || '175,80,0,0' }}
         with:
           api-level: 28
           arch: x86_64

@@ -474,11 +474,13 @@ public class MapInfoLayer extends OsmandMapLayer implements ICoveredScreenRectPr
 		if (rightWidgetsPanel != null) {
 			rightWidgetsPanel.setVisibilityAllowed(previewPanel == null || previewPanel == WidgetsPanel.RIGHT);
 		}
+		// The car interface overlay replaces the top (maneuver) and bottom (route info) widgets.
+		boolean carMode = app.getSettings().CAR_MODE_UI.get();
 		if (topWidgetsPanel != null) {
-			topWidgetsPanel.setVisibilityAllowed(previewPanel == null || previewPanel == WidgetsPanel.TOP);
+			topWidgetsPanel.setVisibilityAllowed(!carMode && (previewPanel == null || previewPanel == WidgetsPanel.TOP));
 		}
 		if (bottomWidgetsPanel != null) {
-			bottomWidgetsPanel.setVisibilityAllowed(previewPanel == null || previewPanel == WidgetsPanel.BOTTOM);
+			bottomWidgetsPanel.setVisibilityAllowed(!carMode && (previewPanel == null || previewPanel == WidgetsPanel.BOTTOM));
 		}
 	}
 
