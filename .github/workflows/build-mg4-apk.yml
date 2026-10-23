@@ -10,11 +10,11 @@ on:
       abi:
         description: 'CPU architecture of the head unit'
         type: choice
-        default: Armv7
+        default: Arm64
         options:
-          - Armv7     # MG4 head unit: system apps ship armeabi-v7a only
+          - Arm64     # MG4 head unit (MT2712) is ARMv8 / arm64-v8a
+          - Armv7
           - Armonly   # arm64 + armv7
-          - Arm64
           - Fat       # arm + x86
   push:
     branches:
@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 90
 
     env:
-      ABI: ${{ inputs.abi || 'Armv7' }}
+      ABI: ${{ inputs.abi || 'Arm64' }}
 
     steps:
       # OsmAnd's Gradle files expect the layout <root>/android/OsmAnd and <root>/resources
