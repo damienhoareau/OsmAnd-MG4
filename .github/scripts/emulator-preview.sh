@@ -46,7 +46,10 @@ for key in ("car_mode_ui", "car_mode_ui_demo"):
     xml = xml.replace("</map>", '    <boolean name="%s" value="true" />\n</map>' % key)
 open(dst, "w", encoding="utf-8").write(xml)
 PY
-adb exec-in run-as "$PKG" sh -c "cat > $PREFS" < "$OUT/prefs-after.xml" || echo "writing prefs failed" | tee -a "$OUT/notes.txt"
+# Copy through /data/local/tmp (adb exec-in did not write anything), then let run-as place the file.
+adb push "$OUT/prefs-after.xml" /data/local/tmp/osmand-prefs.xml
+adb shell chmod 644 /data/local/tmp/osmand-prefs.xml
+adb shell "run-as $PKG sh -c 'cat /data/local/tmp/osmand-prefs.xml > $PREFS'" 2>&1 | tee -a "$OUT/notes.txt"
 adb exec-out run-as "$PKG" cat "$PREFS" > "$OUT/prefs-on-device.xml" 2>&1 || true
 adb exec-out run-as "$PKG" ls -la shared_prefs > "$OUT/shared-prefs-ls.txt" 2>&1 || true
 
