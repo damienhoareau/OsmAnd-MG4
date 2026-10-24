@@ -181,6 +181,11 @@ public class CompassButton extends MapButton {
 
 	@Override
 	public boolean updateVisibility(boolean visible) {
+		if (app.getSettings().CAR_MODE_UI.get()) {
+			// the car mode overlay has its own compass button: hide this one without delay
+			visible = false;
+			forceHideCompass = true;
+		}
 		if (visible) {
 			visible = app.getAppCustomization().isFeatureEnabled(getButtonId());
 		}
