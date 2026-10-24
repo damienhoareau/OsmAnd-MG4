@@ -441,6 +441,9 @@ public abstract class MapButton extends FrameLayoutEx implements OnAttachStateCh
 	}
 
 	protected boolean updateVisibility(boolean visible) {
+		if (visible && app.getSettings().CAR_MODE_UI.get()) {
+			visible = false; // the car mode overlay provides its own buttons
+		}
 		if (visible) {
 			visible = app.getAppCustomization().isFeatureEnabled(getButtonId());
 		}
