@@ -60,6 +60,11 @@ public class CarModeOverlay extends FrameLayout {
 	private final TextView streetText;
 	private final TurnDrawable turnDrawable;
 
+	/** The head unit draws its own top bar over the app without reporting it as an inset. */
+	private static final float HEAD_UNIT_TOP_BAR_RATIO = 0.18f;
+
+	private Insets systemBars = Insets.NONE;
+
 	private final ImageButton stopButton;
 	private final ImageButton compassButton;
 	private int compassIconId;
@@ -88,8 +93,8 @@ public class CarModeOverlay extends FrameLayout {
 
 		// Keep the controls clear of system bars (status bar, navigation bar).
 		ViewCompat.setOnApplyWindowInsetsListener(this, (v, insets) -> {
-			Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-			v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+			systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+			applyPadding();
 			return insets;
 		});
 
@@ -210,6 +215,17 @@ public class CarModeOverlay extends FrameLayout {
 		}
 		updateManeuver();
 		updateEta();
+	}
+
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		applyPadding();
+	}
+
+	private void applyPadding() {
+		int top = Math.max(systemBars.top, Math.round(getHeight() * HEAD_UNIT_TOP_BAR_RATIO));
+		setPadding(systemBars.left, top, systemBars.right, systemBars.bottom);
 	}
 
 	private void updateCompassIcon() {
