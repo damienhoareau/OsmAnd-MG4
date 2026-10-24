@@ -60,8 +60,11 @@ public class CarModeOverlay extends FrameLayout {
 	private final TextView streetText;
 	private final TurnDrawable turnDrawable;
 
-	/** The head unit draws its own top bar over the app without reporting it as an inset. */
-	private static final float HEAD_UNIT_TOP_BAR_RATIO = 0.18f;
+	/**
+	 * The MG4 head unit draws its own top bar over the app without reporting it as an inset.
+	 * Height in physical pixels, measured by the DiAuto-MG4 project (OemDisplayChrome.TOP_BAR_PX).
+	 */
+	private static final int HEAD_UNIT_TOP_BAR_PX = 80;
 
 	private Insets systemBars = Insets.NONE;
 
@@ -224,7 +227,7 @@ public class CarModeOverlay extends FrameLayout {
 	}
 
 	private void applyPadding() {
-		int top = Math.max(systemBars.top, Math.round(getHeight() * HEAD_UNIT_TOP_BAR_RATIO));
+		int top = Math.max(systemBars.top, HEAD_UNIT_TOP_BAR_PX);
 		setPadding(systemBars.left, top, systemBars.right, systemBars.bottom);
 	}
 
