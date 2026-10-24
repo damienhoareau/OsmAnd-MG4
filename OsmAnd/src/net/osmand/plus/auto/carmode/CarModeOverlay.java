@@ -1,6 +1,5 @@
 package net.osmand.plus.auto.carmode;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -23,9 +22,14 @@ import androidx.core.view.WindowInsetsCompat;
 
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
+import net.osmand.plus.activities.MapActivity;
 import net.osmand.plus.auto.TripUtils;
 import net.osmand.plus.routing.NextDirectionInfo;
 import net.osmand.plus.routing.RoutingHelper;
+import net.osmand.plus.search.ShowQuickSearchMode;
+import net.osmand.plus.settings.enums.CompassMode;
+import net.osmand.plus.settings.fragments.BaseSettingsFragment;
+import net.osmand.plus.settings.fragments.SettingsScreenType;
 import net.osmand.plus.settings.enums.ThemeUsageContext;
 import net.osmand.plus.views.OsmandMapTileView;
 import net.osmand.plus.views.mapwidgets.TurnDrawable;
@@ -35,8 +39,9 @@ import net.osmand.util.Algorithms;
 import java.util.Date;
 
 /**
- * Native-view replacement for the Android Auto NavigationTemplate: a maneuver banner (top left),
- * an ETA bar (bottom left) and a column of large map buttons (right).
+ * Native-view replacement for the Android Auto screen: a maneuver banner (top left), an ETA bar
+ * (bottom left), a row of round buttons (top right: stop while navigating, menu, compass, settings,
+ * search) and a column of round map buttons (bottom right: my location, zoom in, zoom out).
  * It only reads state from RoutingHelper and drives OsmandMapTileView, so it can be
  * attached on top of MapActivity without touching the existing HUD.
  */
@@ -44,6 +49,7 @@ public class CarModeOverlay extends FrameLayout {
 
 	private static final long REFRESH_INTERVAL_MS = 1000;
 
+	private final MapActivity mapActivity;
 	private final OsmandApplication app;
 	private final RoutingHelper routingHelper;
 	private final Handler handler = new Handler(Looper.getMainLooper());
@@ -53,6 +59,10 @@ public class CarModeOverlay extends FrameLayout {
 	private final TextView distanceText;
 	private final TextView streetText;
 	private final TurnDrawable turnDrawable;
+
+	private final ImageButton stopButton;
+	private final ImageButton compassButton;
+	private int compassIconId;
 
 	private final LinearLayout etaPanel;
 	private final TextView etaText;
@@ -66,8 +76,10 @@ public class CarModeOverlay extends FrameLayout {
 		}
 	};
 
-	public CarModeOverlay(@NonNull Context context, @NonNull OsmandApplication app) {
-		super(context);
+	public CarModeOverlay(@NonNull MapActivity mapActivity, @NonNull OsmandApplication app) {
+		super(mapActivity);
+		android.content.Context context = mapActivity;
+		this.mapActivity = mapActivity;
 		this.app = app;
 		this.routingHelper = app.getRoutingHelper();
 		// Let touches fall through to the map except on our own controls.
@@ -126,27 +138,41 @@ public class CarModeOverlay extends FrameLayout {
 		etaParams.setMargins(dp(16), 0, 0, dp(16));
 		addView(etaPanel, etaParams);
 
-		// ---- Map buttons (right) ----
-		LinearLayout buttons = new LinearLayout(context);
-		buttons.setOrientation(LinearLayout.VERTICAL);
-		buttons.addView(makeButton(R.drawable.ic_zoom_in, v -> {
-			getMapView().zoomIn();
-		}));
-		buttons.addView(makeButton(R.drawable.ic_zoom_out, v -> {
-			getMapView().zoomOut();
-		}));
-		buttons.addView(makeButton(R.drawable.ic_my_location, v -> {
-			getMapView().backToLocation();
-		}));
-		buttons.addView(makeButton(R.drawable.ic_action_close, v -> {
+		// ---- Top right row: stop (while navigating), menu, compass, settings, search ----
+		LinearLayout topRow = new LinearLayout(context);
+		topRow.setOrientation(LinearLayout.HORIZONTAL);
+		stopButton = makeButton(R.drawable.ic_action_close, v -> {
 			app.stopNavigation();
 			refresh();
-		}));
+		});
+		topRow.addView(stopButton);
+		topRow.addView(makeButton(R.drawable.ic_action_list_flat, v -> mapActivity.openDrawer()));
+		compassButton = makeButton(R.drawable.ic_action_compass, v -> {
+			app.getMapViewTrackingUtilities().requestSwitchCompassToNextMode();
+			updateCompassIcon();
+		});
+		topRow.addView(compassButton);
+		topRow.addView(makeButton(R.drawable.ic_action_settings,
+				v -> BaseSettingsFragment.showInstance(mapActivity, SettingsScreenType.MAIN_SETTINGS)));
+		topRow.addView(makeButton(R.drawable.ic_action_search_dark,
+				v -> mapActivity.getFragmentsHelper().showQuickSearch(ShowQuickSearchMode.NEW_IF_EXPIRED, false)));
 
-		LayoutParams buttonsParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
-				Gravity.END | Gravity.CENTER_VERTICAL);
-		buttonsParams.setMargins(0, 0, dp(16), 0);
-		addView(buttons, buttonsParams);
+		LayoutParams topRowParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+				Gravity.TOP | Gravity.END);
+		topRowParams.setMargins(0, dp(10), dp(10), 0);
+		addView(topRow, topRowParams);
+
+		// ---- Bottom right column: my location, zoom in, zoom out ----
+		LinearLayout column = new LinearLayout(context);
+		column.setOrientation(LinearLayout.VERTICAL);
+		column.addView(makeButton(R.drawable.ic_my_location, v -> getMapView().backToLocation()));
+		column.addView(makeButton(R.drawable.ic_zoom_in, v -> getMapView().zoomIn()));
+		column.addView(makeButton(R.drawable.ic_zoom_out, v -> getMapView().zoomOut()));
+
+		LayoutParams columnParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
+				Gravity.BOTTOM | Gravity.END);
+		columnParams.setMargins(0, 0, dp(10), dp(10));
+		addView(column, columnParams);
 
 		refresh();
 	}
@@ -170,11 +196,13 @@ public class CarModeOverlay extends FrameLayout {
 	}
 
 	private void refresh() {
+		updateCompassIcon();
 		if (app.getSettings().CAR_MODE_UI_DEMO.get()) {
 			showDemo();
 			return;
 		}
 		boolean navigating = routingHelper.isRouteCalculated() && routingHelper.isFollowingMode();
+		stopButton.setVisibility(navigating ? VISIBLE : GONE);
 		maneuverPanel.setVisibility(navigating ? VISIBLE : GONE);
 		etaPanel.setVisibility(navigating ? VISIBLE : GONE);
 		if (!navigating) {
@@ -184,8 +212,19 @@ public class CarModeOverlay extends FrameLayout {
 		updateEta();
 	}
 
+	private void updateCompassIcon() {
+		CompassMode mode = app.getSettings().getCompassMode();
+		int iconId = mode.getIconId(true);
+		if (iconId != compassIconId) {
+			compassIconId = iconId;
+			compassButton.setImageResource(iconId);
+			compassButton.clearColorFilter(); // the compass icons are already two-colored
+		}
+	}
+
 	/** Sample values so the layout can be checked without a calculated route (emulator screenshots). */
 	private void showDemo() {
+		stopButton.setVisibility(VISIBLE);
 		maneuverPanel.setVisibility(VISIBLE);
 		etaPanel.setVisibility(VISIBLE);
 		boolean leftSide = app.getSettings().DRIVING_REGION.get().leftHandDriving;
@@ -274,10 +313,13 @@ public class CarModeOverlay extends FrameLayout {
 		button.setImageResource(iconId);
 		button.setColorFilter(Color.WHITE);
 		button.setScaleType(ImageView.ScaleType.CENTER);
-		button.setBackground(roundedBackground(Color.parseColor("#E6202124"), dp(16)));
+		GradientDrawable background = new GradientDrawable();
+		background.setShape(GradientDrawable.OVAL);
+		background.setColor(Color.parseColor("#F2101010"));
+		button.setBackground(background);
 		button.setOnClickListener(listener);
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(72), dp(72));
-		params.setMargins(0, 0, 0, dp(12));
+		params.setMargins(dp(6), dp(6), dp(6), dp(6));
 		button.setLayoutParams(params);
 		return button;
 	}

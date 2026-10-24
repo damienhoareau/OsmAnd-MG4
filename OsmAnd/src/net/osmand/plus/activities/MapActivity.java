@@ -1140,8 +1140,16 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 			return;
 		}
 		boolean enabled = app.getSettings().CAR_MODE_UI.get();
-		android.util.Log.i("CarModeOverlay", "enabled=" + enabled + " overlayExists=" + (carModeOverlay != null)
-				+ " demo=" + app.getSettings().CAR_MODE_UI_DEMO.get());
+		// The overlay provides its own large buttons: hide OsmAnd's standard map buttons meanwhile.
+		int standardButtons = enabled ? View.GONE : View.VISIBLE;
+		View buttonsTop = findViewById(R.id.MapHudButtonsOverlayTop);
+		View buttonsBottom = findViewById(R.id.MapHudButtonsOverlayBottom);
+		if (buttonsTop != null) {
+			buttonsTop.setVisibility(standardButtons);
+		}
+		if (buttonsBottom != null) {
+			buttonsBottom.setVisibility(standardButtons);
+		}
 		if (enabled && carModeOverlay == null) {
 			carModeOverlay = new CarModeOverlay(this, app);
 			content.addView(carModeOverlay, new ViewGroup.LayoutParams(

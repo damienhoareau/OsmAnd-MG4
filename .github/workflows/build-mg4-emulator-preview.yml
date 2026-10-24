@@ -20,6 +20,7 @@ on:
       - '.github/scripts/emulator-preview.sh'
       - 'OsmAnd/src/net/osmand/plus/auto/carmode/**'
       - 'OsmAnd/src/net/osmand/plus/views/layers/MapInfoLayer.java'
+      - 'OsmAnd/src/net/osmand/plus/activities/MapActivity.java'
 
 permissions:
   contents: write   # needed to publish screenshots to the preview-shots branch
