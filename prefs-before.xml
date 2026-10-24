@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="last_used_application_mode">default</string>
+    <string name="external_storage_dir_V19">/storage/emulated/0/Android/data/net.osmand.dev/files</string>
+    <boolean name="native_rendering_failed_init" value="false" />
+    <boolean name="map_linked_to_location" value="true" />
+    <boolean name="safe_mode" value="false" />
+    <string name="itinerary_last_calculated_md5">1f07e8b8ae2ec52833697b9a7936677c</string>
+    <string name="enabled_plugins">osmand.wikipedia,osmand.srtm.paid,osmand.weather</string>
+    <string name="user_android_id">401e4023-0f3c-4521-bf0d-f34a6b5b2f3a</string>
+    <int name="external_storage_dir_type_V19" value="1" />
+    <int name="opengl_render_failed_count" value="0" />
+    <string name="application_mode">default</string>
+    <long name="last_checked_updates" value="1792847819185" />
+    <long name="user_android_id_expired_time" value="1800796614670" />
+    <string name="previous_installed_version">OsmAnd Nightly 5.5.0</string>
+    <long name="agps_data_downloaded" value="1792847815579" />
+</map>
