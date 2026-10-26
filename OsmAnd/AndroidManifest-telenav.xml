@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MG4 head unit build: OsmAnd under the identity of the car's own navigation app
+  (com.telenav.app.arp, "Nav"), so the launcher and the voice assistant start it as the navigation.
+  The component names and actions below are the ones declared by the original Telenav manifest.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <application
+        android:icon="@mipmap/icon_nightly"
+        tools:replace="android:icon">
+
+        <activity
+            android:name="net.osmand.plus.activities.MapActivity"
+            android:theme="@style/FirstSplashScreenNightlyFree"
+            tools:replace="android:theme">
+            <!-- Only the Telenav alias below is the launcher entry: two entries make a package-based launch ambiguous. -->
+            <intent-filter tools:node="remove">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+                <category android:name="android.intent.category.APP_MAPS" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.telenav.app.arp.fileprovider"
+            tools:replace="android:authorities" />
+
+        <!-- Telenav's launcher activity, so "com.telenav.app.arp/com.telenav.arp.module.map.MainActivity" still resolves. -->
+        <activity-alias
+            android:name="com.telenav.arp.module.map.MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:targetActivity="net.osmand.plus.activities.MapActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.telenav.arp.activity.NAVIGATION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.telenav.arp.activity.NAVIGATION_SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.telenav.arp.activity.NAVIGATION_SESSION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.telenav.arp.activity.UISS_SHOW_SCREEN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Started by the SAIC voice assistant to bring the navigation to the foreground. -->
+        <service
+            android:name="com.telenav.arp.service.NavAppService"
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
+            <intent-filter>
+                <action android:name="SAIC_VR_ACTION_START_NAV" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Voice assistant request to bring the navigation to the foreground" />
+        </service>
+    </application>
+</manifest>

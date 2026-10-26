@@ -34,6 +34,8 @@ public class Version {
 	public static final String FULL_VERSION_NAME = "net.osmand.plus";
 	private static final String FREE_VERSION_NAME = "net.osmand";
 	private static final String FREE_DEV_VERSION_NAME = "net.osmand.dev";
+	// The MG4 build takes the package of the car's own navigation app and behaves like the dev build.
+	private static final String TELENAV_VERSION_NAME = "com.telenav.app.arp";
 	private static final String UTM_REF = "&referrer=utm_source%3Dosmand";
 
 	private final String appName;
@@ -162,7 +164,8 @@ public class Version {
 	}
 
 	public static boolean isFreeVersion(@NonNull OsmandApplication app) {
-		return CollectionUtils.equalsToAny(app.getPackageName(), FREE_VERSION_NAME, FREE_DEV_VERSION_NAME) || isHuawei();
+		return CollectionUtils.equalsToAny(app.getPackageName(), FREE_VERSION_NAME, FREE_DEV_VERSION_NAME,
+				TELENAV_VERSION_NAME) || isHuawei();
 	}
 
 	public static boolean isFullVersion(@NonNull OsmandApplication app) {
@@ -183,7 +186,8 @@ public class Version {
 	}
 
 	public static boolean isDeveloperVersion(@NonNull OsmandApplication app) {
-		return getAppName(app).contains("~") || app.getPackageName().equals(FREE_DEV_VERSION_NAME);
+		return getAppName(app).contains("~") || CollectionUtils.equalsToAny(app.getPackageName(),
+				FREE_DEV_VERSION_NAME, TELENAV_VERSION_NAME);
 	}
 
 	public static boolean isDeveloperBuild(@NonNull OsmandApplication app) {
