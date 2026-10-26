@@ -48,6 +48,7 @@ import java.util.Date;
 public class CarModeOverlay extends FrameLayout {
 
 	private static final long REFRESH_INTERVAL_MS = 1000;
+	private static final long VISIBILITY_INTERVAL_MS = 120;
 	private static final int BUTTON_SIZE_DP = 72;
 	private static final int BUTTON_ICON_PADDING_DP = 22;
 
@@ -83,6 +84,15 @@ public class CarModeOverlay extends FrameLayout {
 		public void run() {
 			refresh();
 			handler.postDelayed(this, REFRESH_INTERVAL_MS);
+		}
+	};
+
+	// The overlay sits above everything, so it is hidden while a menu, a dialog or the drawer is open.
+	private final Runnable visibilityTask = new Runnable() {
+		@Override
+		public void run() {
+			updateVisibility();
+			handler.postDelayed(this, VISIBILITY_INTERVAL_MS);
 		}
 	};
 
@@ -192,12 +202,23 @@ public class CarModeOverlay extends FrameLayout {
 		super.onAttachedToWindow();
 		handler.removeCallbacks(refreshTask);
 		handler.post(refreshTask);
+		handler.removeCallbacks(visibilityTask);
+		handler.post(visibilityTask);
 	}
 
 	@Override
 	protected void onDetachedFromWindow() {
 		handler.removeCallbacks(refreshTask);
+		handler.removeCallbacks(visibilityTask);
 		super.onDetachedFromWindow();
+	}
+
+	private void updateVisibility() {
+		boolean show = mapActivity.isMapVisible() && !mapActivity.isDrawerVisible();
+		int visibility = show ? VISIBLE : GONE;
+		if (getVisibility() != visibility) {
+			setVisibility(visibility);
+		}
 	}
 
 	@NonNull

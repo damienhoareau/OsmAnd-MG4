@@ -1579,6 +1579,11 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 		}
 	}
 
+	/** True from the first frame of the opening animation until the drawer is fully closed. */
+	public boolean isDrawerVisible() {
+		return drawerLayout != null && drawerLayout.isDrawerVisible(GravityCompat.START);
+	}
+
 	public void disableDrawer() {
 		drawerDisabled = true;
 		if (settings.DO_NOT_USE_ANIMATIONS.get()) {
