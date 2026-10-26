@@ -52,6 +52,8 @@ public class CarModeOverlay extends FrameLayout {
 
 	private static final long REFRESH_INTERVAL_MS = 1000;
 	private static final long VISIBILITY_INTERVAL_MS = 120;
+	// Keeps the ETA bar above the map scale, which OsmAnd draws in the bottom left corner.
+	private static final int ETA_BOTTOM_MARGIN_DP = 80;
 	private static final int BUTTON_SIZE_DP = 72;
 	private static final int BUTTON_ICON_PADDING_DP = 22;
 
@@ -167,7 +169,7 @@ public class CarModeOverlay extends FrameLayout {
 
 		LayoutParams etaParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
 				Gravity.BOTTOM | Gravity.START);
-		etaParams.setMargins(dp(16), 0, 0, dp(16));
+		etaParams.setMargins(dp(16), 0, 0, dp(ETA_BOTTOM_MARGIN_DP));
 		addView(etaPanel, etaParams);
 
 		// ---- Top right row: stop (while navigating), menu, compass, settings, search ----
