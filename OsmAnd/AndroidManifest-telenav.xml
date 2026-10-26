@@ -71,5 +71,18 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Voice assistant request to bring the navigation to the foreground" />
         </service>
+
+        <!-- Telenav's navigation API (INavigationService), bound by the other apps of the car. -->
+        <service
+            android:name="com.telenav.arp.service.NavigationService"
+            android:exported="true"
+            android:foregroundServiceType="specialUse">
+            <intent-filter>
+                <action android:name="com.telenav.arp.service.NAVIGATION" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Navigation state and guidance control API for the other apps of the car" />
+        </service>
     </application>
 </manifest>

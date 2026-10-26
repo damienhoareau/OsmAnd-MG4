@@ -101,6 +101,7 @@ android {
 		}
 		telenav {
 			java.srcDirs = ["src-google", "src-osmand", "src-nogplay", "src-telenav"]
+			aidl.srcDirs = ["src-telenav"]
 			manifest.srcFile "AndroidManifest-telenav.xml"
 		}
 		huawei {

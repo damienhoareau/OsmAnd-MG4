@@ -24,10 +24,25 @@ Les noms viennent du manifeste de `Map_overseas_my24.apk` (Telenav 6.2.60, versi
 navigation au premier plan, 0 = répondre seulement), il émet le broadcast `SAIC_VR_ACTION_RESPONSE`
 (`COMMAND=SAIC_VR_ACTION_START_NAV`, `STATUS` 0 = accepté, 1 = commande invalide).
 
+## NavigationService
+
+`NavigationService` (action `com.telenav.arp.service.NAVIGATION`, AIDL `INavigationService`, 30 méthodes dans
+l'ordre d'origine, donc mêmes numéros de transaction) est l'interface par laquelle les autres applications de
+la voiture (assistant vocal, combiné) lisent et pilotent la navigation. Elle est réimplémentée au-dessus du
+routage d'OsmAnd :
+
+- lecture : statut (1 guidage, 0 en pause, -1 aucun), identifiant de session, destination, départ, étapes,
+  segments de guidage (virages, voies, noms de rue), arêtes de l'itinéraire, état de navigation ;
+- commandes : pause, reprise, arrêt, son coupé ou non, répétition de la consigne, ajout d'une étape en tête ;
+- OsmAnd n'a pas d'identifiant de session : il est créé au début d'une navigation et supprimé à sa fin.
+  Vitesses en m/s et longueurs en m comme chez Telenav ; les types de virage et de voie sont des
+  approximations des valeurs de Telenav.
+
 ## Ce qui n'est pas repris (à faire si besoin)
 
-- `NavigationService` (action `com.telenav.arp.service.NAVIGATION`, ~880 lignes) : le service de commande
-  de la navigation (destinations, état…). Son contrat n'est pas reproduit.
+- Dans `NavigationService` : la recherche de lieux (`getPoiList`, `getPoiDetail`, `geocode`), les cartes
+  de stationnement et l'âge de la carte. Ils répondent comme Telenav sans résultat (liste vide ou `null`).
+  Les images du combiné (`getClusterMapImage`, `getClusterTurnImage`) renvoient des bundles vides.
 - Les diffusions d'état `com.telenav.action.nav.status` et `com.telenav.action.maneuver.status`
   (probablement lues par le combiné d'instruments).
 - `ResumeTripProvider`, les services internes et l'écran de cluster (`:cluster`).
@@ -43,6 +58,9 @@ Essayé sur un émulateur Android 16 (APK arm64 exécuté par traduction), **pas
 - l'application s'ouvre par ce nom de composant ;
 - `NavAppService` démarre sans plantage avec `FOREGROUND=1`, `FOREGROUND=0` et sans extra. La réponse
   `SAIC_VR_ACTION_RESPONSE` n'a pas été observée directement (aucun récepteur de test).
+
+`NavigationService`, essayé avec un client qui utilise l'`INavigationService` d'origine (décompilée) : les
+lectures répondent, pause/reprise/son/étape/arrêt agissent sur la navigation OsmAnd en cours.
 
 Sur Android 10 et plus, le système bloque le lancement d'une activité depuis un service en arrière-plan
 (`BAL_BLOCK`, visible sur l'émulateur) : `FOREGROUND=1` n'y ramène donc pas l'application au premier plan.
