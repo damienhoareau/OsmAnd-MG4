@@ -20,7 +20,6 @@ import net.osmand.core.jni.ZoomLevel;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.R;
 import net.osmand.plus.auto.NavigationSession;
-import net.osmand.plus.auto.carmode.RendererDiag;
 import net.osmand.plus.flyover.MapFlyoverRecorder;
 import net.osmand.plus.helpers.AndroidUiHelper;
 import net.osmand.plus.inapp.InAppPurchaseUtils;
@@ -99,7 +98,6 @@ public class MapViewWithLayers extends FrameLayout {
 		AndroidUiHelper.updateVisibility(mapLayersView, !useAndroidAuto && useOpenglRender);
 		AndroidUiHelper.updateVisibility(atlasMapRendererView, !useAndroidAuto && useOpenglRender);
 		AndroidUiHelper.updateVisibility(androidAutoPlaceholder, useAndroidAuto);
-		RendererDiag.onRenderingViewSetup(app);
 	}
 
 	private void resetMapRendererView() {
