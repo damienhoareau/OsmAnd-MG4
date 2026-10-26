@@ -1,0 +1,7 @@
+total 28
+drwxrwx--x 2 u0_a67 u0_a67 4096 2026-10-26 16:12 .
+drwx------ 8 u0_a67 u0_a67 4096 2026-10-26 16:12 ..
+-rw-rw---- 1 u0_a67 u0_a67  116 2026-10-26 16:12 aidl_connections.xml
+-rw-rw---- 1 u0_a67 u0_a67  410 2026-10-26 16:12 net.osmand.plus.activities.MapActivity.xml
+-rw-rw---- 1 u0_a67 u0_a67  550 2026-10-26 16:12 net.osmand.settings.default.xml
+-rw-rw---- 1 u0_a67 u0_a67 1334 2026-10-26 16:12 net.osmand.settings.xml
