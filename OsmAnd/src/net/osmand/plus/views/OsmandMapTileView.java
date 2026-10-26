@@ -1673,6 +1673,9 @@ public class OsmandMapTileView implements IMapDownloaderCallback {
 	}
 
 	public float normalizeElevationAngle(float elevationAngle) {
+		if (Float.isNaN(elevationAngle)) {
+			return 90f;
+		}
 		return elevationAngle > 90 ? 90f : Math.max(minAllowedElevationAngle, elevationAngle);
 	}
 

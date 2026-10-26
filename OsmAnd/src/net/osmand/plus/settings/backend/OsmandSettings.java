@@ -2737,7 +2737,9 @@ public class OsmandSettings {
 	}
 
 	public float getLastKnownMapElevation(@NonNull ApplicationMode appMode) {
-		return getLastKnownMapElevationPref().getModeValue(appMode);
+		float elevation = getLastKnownMapElevationPref().getModeValue(appMode);
+		// a NaN saved once would keep the map camera invalid (nothing drawn) on every start
+		return Float.isNaN(elevation) || Float.isInfinite(elevation) ? 90f : elevation;
 	}
 
 	public void setLastKnownMapElevation(float elevation) {
@@ -2745,6 +2747,9 @@ public class OsmandSettings {
 	}
 
 	public void setLastKnownMapElevation(@NonNull ApplicationMode appMode, float elevation) {
+		if (Float.isNaN(elevation) || Float.isInfinite(elevation)) {
+			return;
+		}
 		getLastKnownMapElevationPref().setModeValue(appMode, elevation);
 	}
 
