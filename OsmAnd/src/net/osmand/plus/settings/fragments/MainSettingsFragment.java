@@ -1,6 +1,5 @@
 package net.osmand.plus.settings.fragments;
 
-import static net.osmand.plus.backup.ui.BackupUiUtils.getLastBackupTimeDescription;
 import static net.osmand.plus.importfiles.ImportType.SETTINGS;
 import static net.osmand.plus.profiles.SelectProfileBottomSheet.PROFILES_LIST_UPDATED_ARG;
 import static net.osmand.plus.profiles.SelectProfileBottomSheet.PROFILE_KEY_ARG;
@@ -21,8 +20,6 @@ import androidx.preference.PreferenceViewHolder;
 
 import net.osmand.plus.R;
 import net.osmand.plus.activities.MapActivity;
-import net.osmand.plus.backup.ui.BackupAuthorizationFragment;
-import net.osmand.plus.backup.ui.BackupCloudFragment;
 import net.osmand.plus.helpers.AndroidUiHelper;
 import net.osmand.plus.profiles.SelectBaseProfileBottomSheet;
 import net.osmand.plus.profiles.SelectProfileBottomSheet.OnSelectProfileCallback;
@@ -30,10 +27,8 @@ import net.osmand.plus.profiles.data.ProfileDataUtils;
 import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.settings.fragments.profileappearance.ProfileAppearanceFragment;
 import net.osmand.plus.settings.preferences.SwitchPreferenceEx;
-import net.osmand.plus.settings.purchase.PurchasesFragment;
 import net.osmand.plus.utils.AndroidUtils;
 import net.osmand.plus.utils.ColorUtilities;
-import net.osmand.util.Algorithms;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -44,10 +39,8 @@ public class MainSettingsFragment extends BaseSettingsFragment implements OnSele
 
 	public static final String TAG = MainSettingsFragment.class.getName();
 
-	private static final String BACKUP_AND_RESTORE = "backup_and_restore";
 	private static final String CONFIGURE_PROFILE = "configure_profile";
 	private static final String APP_PROFILES = "app_profiles";
-	private static final String PURCHASES_SETTINGS = "purchases_settings";
 	private static final String SELECTED_PROFILE = "selected_profile";
 	private static final String CREATE_PROFILE = "create_profile";
 	private static final String REORDER_PROFILES = "reorder_profiles";
@@ -70,9 +63,6 @@ public class MainSettingsFragment extends BaseSettingsFragment implements OnSele
 		availableAppModes = new LinkedHashSet<>(ApplicationMode.values(app));
 		Preference globalSettings = requirePreference("global_settings");
 		globalSettings.setIcon(getContentIcon(R.drawable.ic_action_settings));
-		setupBackupAndRestorePref();
-		Preference purchasesSettings = requirePreference(PURCHASES_SETTINGS);
-		purchasesSettings.setIcon(getContentIcon(R.drawable.ic_action_purchases));
 		PreferenceCategory selectedProfile = requirePreference(SELECTED_PROFILE);
 		selectedProfile.setIconSpaceReserved(false);
 		setupConfigureProfilePref();
@@ -128,21 +118,6 @@ public class MainSettingsFragment extends BaseSettingsFragment implements OnSele
 		} else if (CREATE_PROFILE.equals(prefId)) {
 			callActivity(activity -> SelectBaseProfileBottomSheet.showInstance(activity,
 					this, getSelectedAppMode(), null, false));
-		} else if (PURCHASES_SETTINGS.equals(prefId)) {
-			MapActivity mapActivity = getMapActivity();
-			if (mapActivity != null) {
-				FragmentManager fragmentManager = mapActivity.getSupportFragmentManager();
-				PurchasesFragment.showInstance(fragmentManager);
-			}
-		} else if (BACKUP_AND_RESTORE.equals(prefId)) {
-			MapActivity mapActivity = getMapActivity();
-			if (mapActivity != null) {
-				if (app.getBackupHelper().isRegistered()) {
-					BackupCloudFragment.showInstance(mapActivity.getSupportFragmentManager());
-				} else {
-					BackupAuthorizationFragment.showInstance(mapActivity.getSupportFragmentManager());
-				}
-			}
 		} else if (EXPORT_TO_FILE.equals(prefId)) {
 			MapActivity mapActivity = getMapActivity();
 			if (mapActivity != null) {
@@ -186,19 +161,6 @@ public class MainSettingsFragment extends BaseSettingsFragment implements OnSele
 		configureProfile.setIcon(getAppProfilesIcon(selectedMode, true));
 		configureProfile.setTitle(title);
 		configureProfile.setSummary(profileType);
-	}
-
-	private void setupBackupAndRestorePref() {
-		Preference backupSettings = findPreference(BACKUP_AND_RESTORE);
-		backupSettings.setIcon(getContentIcon(R.drawable.ic_action_cloud_upload));
-
-		if (app.getBackupHelper().isRegistered()) {
-			String time = getLastBackupTimeDescription(app, "");
-			if (!Algorithms.isEmpty(time)) {
-				String summary = getString(R.string.last_sync);
-				backupSettings.setSummary(getString(R.string.ltr_or_rtl_combine_via_colon, summary, time));
-			}
-		}
 	}
 
 	private void profileManagementPref() {
