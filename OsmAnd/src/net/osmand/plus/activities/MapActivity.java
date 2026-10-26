@@ -1921,7 +1921,7 @@ public class MapActivity extends OsmandActionBarActivity implements DownloadEven
 
 	@Override
 	public void onInAppPurchaseGetItems() {
-		DiscountHelper.checkAndDisplay(this);
+		// Sale and discount banners are not shown on the head unit.
 	}
 
 	@Override
