@@ -48,6 +48,8 @@ import java.util.Date;
 public class CarModeOverlay extends FrameLayout {
 
 	private static final long REFRESH_INTERVAL_MS = 1000;
+	private static final int BUTTON_SIZE_DP = 88;
+	private static final int BUTTON_ICON_PADDING_DP = 26;
 
 	private final MapActivity mapActivity;
 	private final OsmandApplication app;
@@ -331,13 +333,15 @@ public class CarModeOverlay extends FrameLayout {
 		ImageButton button = new ImageButton(getContext());
 		button.setImageResource(iconId);
 		button.setColorFilter(Color.WHITE);
-		button.setScaleType(ImageView.ScaleType.CENTER);
+		button.setScaleType(ImageView.ScaleType.FIT_CENTER);
+		button.setPadding(dp(BUTTON_ICON_PADDING_DP), dp(BUTTON_ICON_PADDING_DP),
+				dp(BUTTON_ICON_PADDING_DP), dp(BUTTON_ICON_PADDING_DP));
 		GradientDrawable background = new GradientDrawable();
 		background.setShape(GradientDrawable.OVAL);
 		background.setColor(Color.parseColor("#F2101010"));
 		button.setBackground(background);
 		button.setOnClickListener(listener);
-		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(72), dp(72));
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(BUTTON_SIZE_DP), dp(BUTTON_SIZE_DP));
 		params.setMargins(dp(6), dp(6), dp(6), dp(6));
 		button.setLayoutParams(params);
 		return button;
