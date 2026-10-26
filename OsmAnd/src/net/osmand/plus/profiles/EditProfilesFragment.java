@@ -225,7 +225,7 @@ public class EditProfilesFragment extends BaseFullScreenFragment {
 
 	public List<EditProfileDataObject> getProfiles(boolean deleted) {
 		List<EditProfileDataObject> profiles = new ArrayList<>();
-		for (ApplicationMode mode : ApplicationMode.allPossibleValues()) {
+		for (ApplicationMode mode : ApplicationMode.selectableValues()) {
 			String modeKey = mode.getStringKey();
 			if (deleted && deletedModesKeys.contains(modeKey) || !deleted && !deletedModesKeys.contains(modeKey)) {
 				Integer order = appModesOrders.get(modeKey);

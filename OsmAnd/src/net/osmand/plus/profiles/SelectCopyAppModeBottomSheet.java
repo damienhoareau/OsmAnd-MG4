@@ -43,7 +43,7 @@ public class SelectCopyAppModeBottomSheet extends AppModesBottomSheetDialogFragm
 	@Override
 	protected void getData() {
 		appModes = new ArrayList<>();
-		for (ApplicationMode mode : ApplicationMode.allPossibleValues()) {
+		for (ApplicationMode mode : ApplicationMode.selectableValues()) {
 			if (mode != getAppMode()) {
 				appModes.add(mode);
 			}

@@ -60,7 +60,7 @@ public class SelectMultipleProfilesBottomSheet extends BasePreferenceBottomSheet
 
 	private void refreshProfiles(@NonNull OsmandApplication app) {
 		profiles.clear();
-		List<ApplicationMode> appModes = ApplicationMode.allPossibleValues();
+		List<ApplicationMode> appModes = ApplicationMode.selectableValues();
 		profiles.addAll(ProfileDataUtils.getDataObjects(app, appModes));
 		for (ProfileDataObject profile : profiles) {
 			String key = profile.getStringKey();

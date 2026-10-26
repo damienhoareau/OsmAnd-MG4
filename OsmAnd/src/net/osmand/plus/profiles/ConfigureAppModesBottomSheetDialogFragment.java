@@ -29,7 +29,7 @@ public class ConfigureAppModesBottomSheetDialogFragment
 		super.onResume();
 		
 		adapter.setProfileSelectedListener(this);
-		allModes = new ArrayList<>(ApplicationMode.allPossibleValues());
+		allModes = new ArrayList<>(ApplicationMode.selectableValues());
 		allModes.remove(ApplicationMode.DEFAULT);
 		adapter.updateItemsList(allModes, new LinkedHashSet<>(ApplicationMode.values(app)));
 		setupHeightAndBackground(getView());
@@ -42,7 +42,7 @@ public class ConfigureAppModesBottomSheetDialogFragment
 
 	@Override
 	protected void getData() {
-		allModes.addAll(ApplicationMode.allPossibleValues());
+		allModes.addAll(ApplicationMode.selectableValues());
 		allModes.remove(ApplicationMode.DEFAULT);
 		selectedModes.addAll(ApplicationMode.values(app));
 		selectedModes.remove(ApplicationMode.DEFAULT);

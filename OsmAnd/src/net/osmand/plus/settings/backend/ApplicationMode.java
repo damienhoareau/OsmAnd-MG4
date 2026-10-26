@@ -116,7 +116,7 @@ public class ApplicationMode {
 			String available = settings.AVAILABLE_APP_MODES.get();
 			cachedFilteredValues = new ArrayList<>();
 			for (ApplicationMode v : values) {
-				if (available.contains(v.getStringKey() + ",") || v == DEFAULT) {
+				if ((available.contains(v.getStringKey() + ",") || v == DEFAULT) && !isHidden(v)) {
 					cachedFilteredValues.add(v);
 				}
 			}
@@ -127,6 +127,25 @@ public class ApplicationMode {
 	@NonNull
 	public static List<ApplicationMode> allPossibleValues() {
 		return values;
+	}
+
+	/** Built-in profiles not offered on the MG4 head unit: only "Browse map" and "Car" are kept. */
+	public static boolean isHidden(@NonNull ApplicationMode mode) {
+		return mode == BICYCLE || mode == PEDESTRIAN || mode == TRUCK || mode == MOTORCYCLE || mode == MOPED
+				|| mode == PUBLIC_TRANSPORT || mode == TRAIN || mode == BOAT || mode == AIRCRAFT
+				|| mode == SKI || mode == HORSE;
+	}
+
+	/** The profiles a user can see and pick: allPossibleValues() without the hidden built-in ones. */
+	@NonNull
+	public static List<ApplicationMode> selectableValues() {
+		List<ApplicationMode> selectable = new ArrayList<>();
+		for (ApplicationMode mode : values) {
+			if (!isHidden(mode)) {
+				selectable.add(mode);
+			}
+		}
+		return selectable;
 	}
 
 	@NonNull

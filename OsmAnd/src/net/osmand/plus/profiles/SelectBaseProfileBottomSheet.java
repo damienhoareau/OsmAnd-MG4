@@ -35,7 +35,7 @@ public class SelectBaseProfileBottomSheet extends SelectProfileBottomSheet {
 	@Override
 	protected void refreshProfiles() {
 		profiles.clear();
-		List<ApplicationMode> appModes = new ArrayList<>(ApplicationMode.allPossibleValues());
+		List<ApplicationMode> appModes = new ArrayList<>(ApplicationMode.selectableValues());
 		appModes.remove(ApplicationMode.DEFAULT);
 		profiles.addAll(ProfileDataUtils.getDataObjects(app, appModes));
 	}

@@ -66,7 +66,7 @@ public class MainSettingsFragment extends BaseSettingsFragment implements OnSele
 
 	@Override
 	protected void setupPreferences() {
-		allAppModes = new ArrayList<>(ApplicationMode.allPossibleValues());
+		allAppModes = new ArrayList<>(ApplicationMode.selectableValues());
 		availableAppModes = new LinkedHashSet<>(ApplicationMode.values(app));
 		Preference globalSettings = requirePreference("global_settings");
 		globalSettings.setIcon(getContentIcon(R.drawable.ic_action_settings));
