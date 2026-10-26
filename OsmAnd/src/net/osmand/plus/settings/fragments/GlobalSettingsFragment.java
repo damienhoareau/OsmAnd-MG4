@@ -17,7 +17,6 @@ import androidx.preference.SwitchPreferenceCompat;
 
 import net.osmand.plus.R;
 import net.osmand.plus.activities.RestartActivity;
-import net.osmand.plus.dialogs.LocationSourceBottomSheet;
 import net.osmand.plus.dialogs.MapRenderingEngineDialog;
 import net.osmand.plus.dialogs.SpeedCamerasBottomSheet;
 import net.osmand.plus.feedback.SendAnalyticsBottomSheetDialogFragment;
@@ -29,7 +28,6 @@ import net.osmand.plus.settings.backend.ApplicationMode;
 import net.osmand.plus.settings.backend.OsmandSettings;
 import net.osmand.plus.settings.datastorage.DataStorageHelper;
 import net.osmand.plus.settings.datastorage.item.StorageItem;
-import net.osmand.plus.settings.enums.LocationSource;
 import net.osmand.plus.settings.preferences.ListPreferenceEx;
 import net.osmand.plus.settings.preferences.SwitchPreferenceEx;
 
@@ -64,7 +62,6 @@ public class GlobalSettingsFragment extends BaseSettingsFragment
 		setupDialogsAndNotificationsPref();
 		setupHistoryPref();
 		setupEnableProxyPref();
-		setupLocationSourcePref();
 		setupAutoBackupPref();
 		setupUninstallSpeedCamerasPref();
 	}
@@ -160,8 +157,6 @@ public class GlobalSettingsFragment extends BaseSettingsFragment
 			});
 		} else if (prefId.equals(settings.SPEED_CAMERAS_UNINSTALLED.getId())) {
 			setupUninstallSpeedCamerasPref();
-		} else if (prefId.equals(settings.LOCATION_SOURCE.getId())) {
-			setupLocationSourcePref();
 		} else if (prefId.equals(settings.AUTO_BACKUP_ENABLED.getId())) {
 			BackupManager.dataChanged(app.getPackageName());
 		}
@@ -185,11 +180,6 @@ public class GlobalSettingsFragment extends BaseSettingsFragment
 			FragmentManager manager = getFragmentManager();
 			if (manager != null) {
 				SpeedCamerasBottomSheet.showInstance(manager, this, getSelectedAppMode(), false);
-			}
-		} else if (prefId.equals(settings.LOCATION_SOURCE.getId())) {
-			FragmentManager manager = getFragmentManager();
-			if (manager != null) {
-				LocationSourceBottomSheet.showInstance(manager, this);
 			}
 		} else if (prefId.equals(MAP_RENDERING_ENGINE_ID)) {
 			new MapRenderingEngineDialog(app, getActivity()).showDialog(() -> {
@@ -311,14 +301,6 @@ public class GlobalSettingsFragment extends BaseSettingsFragment
 		Preference dialogsAndNotifications = findPreference(DIALOGS_AND_NOTIFICATIONS_PREF_ID);
 		dialogsAndNotifications.setIcon(getPersistentPrefIcon(R.drawable.ic_action_notification));
 		dialogsAndNotifications.setSummary(summary);
-	}
-
-	private void setupLocationSourcePref() {
-		Preference preference = findPreference(settings.LOCATION_SOURCE.getId());
-		preference.setIcon(getContentIcon(R.drawable.ic_action_device_location));
-
-		LocationSource source = settings.LOCATION_SOURCE.get();
-		preference.setSummary(source.nameId);
 	}
 
 	private void setupEnableProxyPref() {

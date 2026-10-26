@@ -125,13 +125,6 @@
 		app:fragment="net.osmand.plus.settings.fragments.DialogsAndNotificationsSettingsFragment"
 		tools:icon="@drawable/ic_action_notification" />
 
-	<Preference
-		android:key="location_source"
-		android:layout="@layout/preference_with_descr"
-		android:persistent="false"
-		android:title="@string/location_source"
-		tools:icon="@drawable/ic_action_device_location" />
-
 	<net.osmand.plus.settings.preferences.SwitchPreferenceEx
 		android:key="auto_backup_enabled"
 		android:layout="@layout/preference_with_descr_dialog_and_switch"

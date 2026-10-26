@@ -106,7 +106,6 @@ import net.osmand.plus.settings.backend.OsmAndAppCustomization;
 import net.osmand.plus.settings.backend.OsmandSettings;
 import net.osmand.plus.settings.backend.backup.FileSettingsHelper;
 import net.osmand.plus.settings.enums.DrivingRegion;
-import net.osmand.plus.settings.enums.LocationSource;
 import net.osmand.plus.shared.OsmAndContextImpl;
 import net.osmand.plus.simulation.OsmAndLocationSimulation;
 import net.osmand.plus.track.clickable.ClickableWayHelper;
@@ -457,10 +456,7 @@ public class OsmandApplication extends MultiDexApplication {
 	}
 
 	public LocationServiceHelper createLocationServiceHelper() {
-		LocationSource source = settings.LOCATION_SOURCE.get();
-		if (source == LocationSource.GOOGLE_PLAY_SERVICES) {
-			return new GmsLocationServiceHelper(this);
-		}
+		// The MG4 head unit has no Google Play Services: always use the Android location API.
 		return Version.isHMDBuild() ? new HMDLocationServiceHelper(this) : new AndroidApiLocationServiceHelper(this);
 	}
 
