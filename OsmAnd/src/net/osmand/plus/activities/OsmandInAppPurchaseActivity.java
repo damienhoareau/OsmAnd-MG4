@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentManager.FragmentLifecycleCallbacks;
 import net.osmand.PlatformUtil;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.Version;
+import net.osmand.plus.auto.carmode.CarModeUiScale;
 import net.osmand.plus.inapp.InAppPurchaseHelper;
 import net.osmand.plus.inapp.InAppPurchaseHelper.InAppPurchaseInitCallback;
 import net.osmand.plus.inapp.InAppPurchaseHelper.InAppPurchaseListener;
@@ -47,10 +48,9 @@ public class OsmandInAppPurchaseActivity extends AppCompatActivity implements In
 
 	@Override
 	protected void attachBaseContext(Context newBase) {
-		super.attachBaseContext(newBase);
-
 		this.app = (OsmandApplication) newBase.getApplicationContext();
 		this.settings = app.getSettings();
+		super.attachBaseContext(CarModeUiScale.wrap(app, newBase));
 	}
 
 	@Override

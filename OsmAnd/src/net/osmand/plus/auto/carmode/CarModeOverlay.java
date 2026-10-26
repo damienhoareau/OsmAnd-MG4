@@ -48,8 +48,8 @@ import java.util.Date;
 public class CarModeOverlay extends FrameLayout {
 
 	private static final long REFRESH_INTERVAL_MS = 1000;
-	private static final int BUTTON_SIZE_DP = 100;
-	private static final int BUTTON_ICON_PADDING_DP = 30;
+	private static final int BUTTON_SIZE_DP = 72;
+	private static final int BUTTON_ICON_PADDING_DP = 22;
 
 	private final MapActivity mapActivity;
 	private final OsmandApplication app;
