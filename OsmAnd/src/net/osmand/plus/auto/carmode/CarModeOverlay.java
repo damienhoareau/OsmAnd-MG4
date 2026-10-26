@@ -2,6 +2,7 @@ package net.osmand.plus.auto.carmode;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -32,6 +34,7 @@ import net.osmand.plus.settings.fragments.BaseSettingsFragment;
 import net.osmand.plus.settings.fragments.SettingsScreenType;
 import net.osmand.plus.settings.enums.ThemeUsageContext;
 import net.osmand.plus.views.OsmandMapTileView;
+import net.osmand.plus.views.controls.maphudbuttons.CompassDrawable;
 import net.osmand.plus.views.mapwidgets.TurnDrawable;
 import net.osmand.router.TurnType;
 import net.osmand.util.Algorithms;
@@ -93,6 +96,15 @@ public class CarModeOverlay extends FrameLayout {
 		public void run() {
 			updateVisibility();
 			handler.postDelayed(this, VISIBILITY_INTERVAL_MS);
+		}
+	};
+
+	// The map rotates smoothly, so the compass follows it on every frame rather than once a second.
+	private final Runnable rotationTask = new Runnable() {
+		@Override
+		public void run() {
+			updateCompassRotation();
+			postOnAnimation(this);
 		}
 	};
 
@@ -204,12 +216,15 @@ public class CarModeOverlay extends FrameLayout {
 		handler.post(refreshTask);
 		handler.removeCallbacks(visibilityTask);
 		handler.post(visibilityTask);
+		removeCallbacks(rotationTask);
+		postOnAnimation(rotationTask);
 	}
 
 	@Override
 	protected void onDetachedFromWindow() {
 		handler.removeCallbacks(refreshTask);
 		handler.removeCallbacks(visibilityTask);
+		removeCallbacks(rotationTask);
 		super.onDetachedFromWindow();
 	}
 
@@ -259,8 +274,25 @@ public class CarModeOverlay extends FrameLayout {
 		int iconId = mode.getIconId(true);
 		if (iconId != compassIconId) {
 			compassIconId = iconId;
-			compassButton.setImageResource(iconId);
+			Drawable icon = ContextCompat.getDrawable(getContext(), iconId);
+			if (icon != null) {
+				// Same drawable as OsmAnd's own compass button, so the icon turns with the map.
+				compassButton.setImageDrawable(new CompassDrawable(icon.mutate()));
+			}
 			compassButton.clearColorFilter(); // the compass icons are already two-colored
+			updateCompassRotation();
+		}
+	}
+
+	private void updateCompassRotation() {
+		Drawable drawable = compassButton.getDrawable();
+		if (drawable instanceof CompassDrawable) {
+			CompassDrawable compass = (CompassDrawable) drawable;
+			float rotation = mapActivity.getMapRotate();
+			if (compass.getMapRotation() != rotation) {
+				compass.setMapRotation(rotation);
+				compassButton.invalidate();
+			}
 		}
 	}
 
