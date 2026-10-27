@@ -3638,7 +3638,7 @@ public class OsmandSettings {
 	public static final float BUILDINGS_3D_ALPHA_DEF_VALUE = 0.5f;
 	public static final int BUILDINGS_3D_DEFAULT_COLOR = 0x666666;
 
-	public final CommonPreference<Boolean> ENABLE_3D_MAP_OBJECTS = new BooleanPreference(this, "enable_3d_map_objects", false).makeProfile().cache();
+	public final CommonPreference<Boolean> ENABLE_3D_MAP_OBJECTS = new BooleanPreference(this, "enable_3d_map_objects", true).makeProfile().cache();
 	public final CommonPreference<Float> BUILDINGS_3D_ALPHA = new FloatPreference(this, "3d_buildings_alpha", BUILDINGS_3D_ALPHA_DEF_VALUE).makeProfile().cache();
 	public final CommonPreference<Integer> BUILDINGS_3D_VIEW_DISTANCE = new IntPreference(this, "3d_buildings_view_distance", 1).makeProfile().cache();
 	public final CommonPreference<Integer> BUILDINGS_3D_COLOR_STYLE = new IntPreference(this, "buildings_3d_color_style", 1).makeProfile().cache();
