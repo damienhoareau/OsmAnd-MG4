@@ -127,7 +127,7 @@ final class TelenavBundles {
 
 	/** OsmAnd's turn types by name in Telenav's TurnType enum. */
 	@NonNull
-	private static String turnType(@NonNull TurnType turn) {
+	static String turnType(@NonNull TurnType turn) {
 		switch (turn.getValue()) {
 			case TurnType.TL:
 				return "TurnLeft";
@@ -187,6 +187,61 @@ final class TelenavBundles {
 			}
 		}
 		return lanes;
+	}
+
+	/**
+	 * The lanes of a maneuver as the SAIC cluster takes them: the codes of Telenav's lane pictures, comma
+	 * separated, at most eight. The code says the lane's arrows and whether the maneuver uses it.
+	 */
+	@NonNull
+	static String laneCodes(@Nullable TurnType turn) {
+		StringBuilder codes = new StringBuilder();
+		int count = 0;
+		for (Bundle lane : lanes(turn)) {
+			int code = laneCode(lane.getString("lanePattern", "None"), lane.getString("highlightedLane", "None"));
+			if (code == 0) {
+				continue;
+			}
+			codes.append(count > 0 ? "," : "").append(code);
+			if (++count == 8) {
+				break;
+			}
+		}
+		return codes.toString();
+	}
+
+	private static int laneCode(@NonNull String pattern, @NonNull String highlighted) {
+		boolean on = pattern.equals(highlighted);
+		switch (pattern) {
+			case "Continue":
+				return on ? 2 : 1;
+			case "Left":
+				return on ? 4 : 3;
+			case "Right":
+				return on ? 6 : 5;
+			case "LeftUTurn":
+				return on ? 8 : 7;
+			case "RightUTurn":
+				return on ? 10 : 9;
+			case "ContinueAndLeft":
+				return highlighted.equals("Left") ? 13 : highlighted.equals("Continue") ? 12 : 11;
+			case "ContinueAndRight":
+				return highlighted.equals("Right") ? 16 : highlighted.equals("Continue") ? 15 : 14;
+			case "LeftAndLeftUTurn":
+				return highlighted.equals("Left") ? 18 : highlighted.equals("LeftUTurn") ? 19 : 17;
+			case "RightAndRightUTurn":
+				return highlighted.equals("Right") ? 21 : highlighted.equals("RightUTurn") ? 22 : 20;
+			case "ContinueAndLeftUTurn":
+				return highlighted.equals("Left") ? 25 : highlighted.equals("LeftUTurn") ? 26
+						: highlighted.equals("Continue") ? 24 : 23;
+			case "ContinueAndLeftAndRight":
+				return highlighted.equals("Right") ? 30 : highlighted.equals("Left") ? 29
+						: highlighted.equals("Continue") ? 28 : 27;
+			case "LeftAndRight":
+				return highlighted.equals("Right") ? 33 : highlighted.equals("Left") ? 32 : 31;
+			default:
+				return 0;
+		}
 	}
 
 	/** One lane of OsmAnd (bit 0: used by the maneuver, then up to three turn types) as a Telenav LaneInfo. */

@@ -9,6 +9,11 @@
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- The SAIC adapter service is the way to the instrument cluster (SaicCluster). -->
+    <queries>
+        <package android:name="com.saicmotor.adapterservice" />
+    </queries>
+
     <application
         android:icon="@mipmap/icon_nightly"
         tools:replace="android:icon">
@@ -84,5 +89,11 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Navigation state and guidance control API for the other apps of the car" />
         </service>
+
+        <!-- Starts the guidance notifications (cluster, nav.status and maneuver.status broadcasts) with the process. -->
+        <provider
+            android:name="com.telenav.arp.service.ClusterInitProvider"
+            android:authorities="com.telenav.app.arp.cluster-init"
+            android:exported="false" />
     </application>
 </manifest>

@@ -38,13 +38,31 @@ routage d'OsmAnd :
   Vitesses en m/s et longueurs en m comme chez Telenav ; les types de virage et de voie sont des
   approximations des valeurs de Telenav.
 
+## Informations pour le combiné d'instruments
+
+Dans l'app d'origine, `ProductApplication` remplace l'émetteur de broadcasts par un émetteur qui parle au
+service système `com.saicmotor.adapterservice/.services.MapService` : c'est le vrai chemin vers le combiné.
+Les broadcasts `com.telenav.action.*` ne sont donc probablement lus que par d'éventuelles applications
+tierces. Les deux sont envoyés ici (`NavNotifier`, démarré par `ClusterInitProvider` avec le processus) :
+
+- **`MapService` de SAIC** (`SaicCluster`, `IMapService.aidl`) : l'AIDL d'origine est obfusqué (98 méthodes) ;
+  ses numéros de transaction sont repris dans l'ordre, les méthodes inutilisées sont des emplacements.
+  Envoyés : état de navigation, manœuvre (numéro d'icône, distance en m ou en pieds, texte), nom de rue,
+  voies, distance et minutes restantes, limite de vitesse. Les numéros d'icône et de voie sont ceux de
+  Telenav (`ManeuverIcons`, `TelenavBundles.laneCodes`).
+- **Broadcasts** (`NavBroadcasts`) : `com.telenav.action.nav.status` (`KEY_NAV_START`, `KEY_NAV_STOP`) et
+  `com.telenav.action.maneuver.status` (`KEY_MANEUVER_START`, `KEY_MANERVER_UPDATE`, `KEY_MANEUVER_END`),
+  avec `SUB_ACTION` et `ACTION_INFO` (`EXT_STRING_STREET_NAME`, `EXT_STRING_DISTANCE`). Pas d'icône bitmap.
+
+OsmAnd n'émet aucun événement au démarrage du guidage : `NavNotifier` surveille son état une fois par
+seconde. Le nombre de feux rouges reste à 0. Contrairement à Telenav, l'app n'enregistre pas de callback
+auprès de `MapService` ; si le service l'exige, seule la voiture le montrera.
+
 ## Ce qui n'est pas repris (à faire si besoin)
 
 - Dans `NavigationService` : la recherche de lieux (`getPoiList`, `getPoiDetail`, `geocode`), les cartes
   de stationnement et l'âge de la carte. Ils répondent comme Telenav sans résultat (liste vide ou `null`).
   Les images du combiné (`getClusterMapImage`, `getClusterTurnImage`) renvoient des bundles vides.
-- Les diffusions d'état `com.telenav.action.nav.status` et `com.telenav.action.maneuver.status`
-  (probablement lues par le combiné d'instruments).
 - `ResumeTripProvider`, les services internes et l'écran de cluster (`:cluster`).
 - L'icône d'origine (l'icône OsmAnd Nightly est conservée) et `launchMode=singleInstance` (un alias hérite
   du mode de l'activité cible).
@@ -61,6 +79,11 @@ Essayé sur un émulateur Android 16 (APK arm64 exécuté par traduction), **pas
 
 `NavigationService`, essayé avec un client qui utilise l'`INavigationService` d'origine (décompilée) : les
 lectures répondent, pause/reprise/son/étape/arrêt agissent sur la navigation OsmAnd en cours.
+
+Les informations du combiné, essayées avec un faux `com.saicmotor.adapterservice` qui journalise les appels
+(même AIDL) pendant une conduite simulée de 12 km : les appels arrivent sur les bonnes méthodes, la distance
+de manœuvre décroît régulièrement, les icônes (virages, ronds-points), les voies, la limite de vitesse et la
+fin de navigation sont envoyées, les broadcasts sont reçus. Le vrai `MapService` n'a pas été essayé.
 
 Sur Android 10 et plus, le système bloque le lancement d'une activité depuis un service en arrière-plan
 (`BAL_BLOCK`, visible sur l'émulateur) : `FOREGROUND=1` n'y ramène donc pas l'application au premier plan.
