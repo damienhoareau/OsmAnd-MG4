@@ -69,7 +69,7 @@ final class NavNotifier implements IRouteInformationListener {
 	private NavNotifier(@NonNull OsmandApplication app) {
 		this.app = app;
 		this.broadcasts = new NavBroadcasts(app);
-		this.cluster = new SaicCluster(app, this::onClusterConnected);
+		this.cluster = new SaicCluster(app, new MapNotificationListener(app), this::onClusterConnected);
 	}
 
 	/** The cluster service starts empty: send it the whole state. */
@@ -85,6 +85,7 @@ final class NavNotifier implements IRouteInformationListener {
 		if (instance == null) {
 			instance = new NavNotifier(app);
 			app.getRoutingHelper().addListener(instance);
+			instance.cluster.connect();
 			instance.handler.post(instance.tick);
 		}
 	}
@@ -121,7 +122,6 @@ final class NavNotifier implements IRouteInformationListener {
 		running = true;
 		resetSent();
 		broadcasts.navStatus(NavBroadcasts.NAV_START);
-		cluster.connect();
 		cluster.navigating(true);
 	}
 
@@ -140,7 +140,6 @@ final class NavNotifier implements IRouteInformationListener {
 		cluster.redLights(0);
 		cluster.laneInfo("");
 		cluster.navigating(false);
-		cluster.disconnect();
 		resetSent();
 	}
 

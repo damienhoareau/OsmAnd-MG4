@@ -55,8 +55,27 @@ tierces. Les deux sont envoyés ici (`NavNotifier`, démarré par `ClusterInitPr
   avec `SUB_ACTION` et `ACTION_INFO` (`EXT_STRING_STREET_NAME`, `EXT_STRING_DISTANCE`). Pas d'icône bitmap.
 
 OsmAnd n'émet aucun événement au démarrage du guidage : `NavNotifier` surveille son état une fois par
-seconde. Le nombre de feux rouges reste à 0. Contrairement à Telenav, l'app n'enregistre pas de callback
-auprès de `MapService` ; si le service l'exige, seule la voiture le montrera.
+seconde. Le nombre de feux rouges reste à 0.
+
+Le lien avec `MapService` reste établi tant que l'app vit (comme chez Telenav) et enregistre un **callback**
+(`IMapNotificationListener.aidl`, 59 méthodes dans l'ordre d'origine, classes `Address`, `AdapterGPSInfo`,
+`AdapterSatellitesInfo` et `EVRoutPoiInfo` reprenant la disposition des parcels d'origine). Par lui,
+`MapService` envoie les ordres de l'assistant vocal et du tableau de bord, que `MapNotificationListener`
+exécute avec OsmAnd :
+
+| Appel | Effet |
+|---|---|
+| `startNavApp` / `stopNav` | l'app passe au premier plan / arrête le guidage |
+| `goHome`, `goOffice`, `goToPoi` | aperçu d'itinéraire vers le favori Maison ou Travail (rien s'il n'est pas défini, comme chez Telenav) ou vers le point |
+| `setHomeAddress`, `setOfficeAddress` | définit le favori Maison ou Travail |
+| `getCurLocationDesc` | JSON `lon`, `lat` et `streetName` (OsmAnd ne donne qu'une ligne d'adresse) |
+| `zoomIn`, `zoomOut`, `zoomInMax`, `zoomReset`, `reCenter` | agit sur la carte |
+| `setFastestRoute`, `setShortestRoute`, `setAvoidingTollwayRoute` | change le profil de calcul et recalcule |
+
+Pas faits : `SearchPoi`, `SearchAroundPoi`, `SearchCategoryPoi` (liste vide), `resetNavAppSettings`,
+`startNavFromEVRout`, `setEconomicalRoute` (OsmAnd n'a pas ce style) ; l'état du véhicule (batterie,
+carburant, rapport, capteurs, unités, langues, jour/nuit) est reçu et ignoré. Contrairement à Telenav,
+`setShortestRoute` donne vraiment le plus court (Telenav le traite comme le plus rapide).
 
 ## Ce qui n'est pas repris (à faire si besoin)
 
@@ -83,7 +102,9 @@ lectures répondent, pause/reprise/son/étape/arrêt agissent sur la navigation 
 Les informations du combiné, essayées avec un faux `com.saicmotor.adapterservice` qui journalise les appels
 (même AIDL) pendant une conduite simulée de 12 km : les appels arrivent sur les bonnes méthodes, la distance
 de manœuvre décroît régulièrement, les icônes (virages, ronds-points), les voies, la limite de vitesse et la
-fin de navigation sont envoyées, les broadcasts sont reçus. Le vrai `MapService` n'a pas été essayé.
+fin de navigation sont envoyées, les broadcasts sont reçus. Le faux service appelle aussi le callback : ordres
+(Maison, `goHome`, `stopNav`, zoom, profils de route, adresse courante) et état du véhicule sont reçus et
+exécutés. Le vrai `MapService` n'a pas été essayé.
 
 Sur Android 10 et plus, le système bloque le lancement d'une activité depuis un service en arrière-plan
 (`BAL_BLOCK`, visible sur l'émulateur) : `FOREGROUND=1` n'y ramène donc pas l'application au premier plan.

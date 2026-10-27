@@ -11,11 +11,14 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.saicmotor.adapterservice.IMapNotificationListener;
 import com.saicmotor.adapterservice.IMapService;
 
 /**
- * The link to the instrument cluster: the SAIC adapter service takes the guidance state from the map
- * app (the same calls Telenav's SAICMapServiceWrapper makes). Nothing happens off the car, where the
+ * The link to the SAIC adapter service (the same calls Telenav's SAICMapServiceWrapper makes). It goes both
+ * ways: the app tells the instrument cluster how the guidance goes, and registers a listener through which
+ * the service sends the voice assistant's commands and the car's state. The link stays up while the app
+ * lives: the system binds again by itself if the service restarts. Nothing happens off the car, where the
  * service does not exist.
  */
 final class SaicCluster {
@@ -26,6 +29,7 @@ final class SaicCluster {
 
 	private final Context context;
 	private final Runnable onConnected;
+	private final IMapNotificationListener listener;
 	@Nullable
 	private volatile IMapService service;
 	private boolean bound;
@@ -33,7 +37,13 @@ final class SaicCluster {
 	private final ServiceConnection connection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder binder) {
-			service = IMapService.Stub.asInterface(binder);
+			IMapService connected = IMapService.Stub.asInterface(binder);
+			service = connected;
+			try {
+				connected.registerListener(listener);
+			} catch (RemoteException | RuntimeException e) {
+				Log.w(TAG, "registering the listener failed: " + e);
+			}
 			onConnected.run();
 		}
 
@@ -43,9 +53,13 @@ final class SaicCluster {
 		}
 	};
 
-	/** @param onConnected called on the main thread when the service is bound, to send the whole state again */
-	SaicCluster(@NonNull Context context, @NonNull Runnable onConnected) {
+	/**
+	 * @param listener    registered with the service on every connection
+	 * @param onConnected called on the main thread when the service is bound, to send the whole state again
+	 */
+	SaicCluster(@NonNull Context context, @NonNull IMapNotificationListener listener, @NonNull Runnable onConnected) {
 		this.context = context;
+		this.listener = listener;
 		this.onConnected = onConnected;
 	}
 
@@ -62,18 +76,6 @@ final class SaicCluster {
 		if (!bound) {
 			Log.i(TAG, "SAIC map service not available");
 		}
-	}
-
-	void disconnect() {
-		if (bound) {
-			bound = false;
-			service = null;
-			context.unbindService(connection);
-		}
-	}
-
-	boolean isConnected() {
-		return service != null;
 	}
 
 	void navigating(boolean navigating) {

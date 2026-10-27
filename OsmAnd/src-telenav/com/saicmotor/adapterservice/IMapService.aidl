@@ -1,13 +1,15 @@
 package com.saicmotor.adapterservice;
 
+import com.saicmotor.adapterservice.IMapNotificationListener;
+
 /**
  * The part of the SAIC adapter service's map interface (com.saicmotor.adapterservice.services.MapService)
  * that feeds the instrument cluster. Telenav's copy is obfuscated and has 98 methods; transaction codes
  * follow the declaration order, so the ones this app never calls are numbered placeholders.
  */
 interface IMapService {
-    void unused1();
-    void unused2();
+    void registerListener(IMapNotificationListener listener);
+    void unregisterListener(IMapNotificationListener listener);
     void unused3();
     void unused4();
     void unused5();

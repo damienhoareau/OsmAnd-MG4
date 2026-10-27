@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 
 import net.osmand.data.LatLon;
 import net.osmand.data.PointDescription;
-import net.osmand.plus.GeocodingLookupService.AddressLookupRequest;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.Version;
 import net.osmand.plus.helpers.TargetPoint;
@@ -27,8 +26,6 @@ import net.osmand.router.RouteSegmentResult;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The navigation API of the car's Telenav app, on top of OsmAnd: other apps bind to it (action
@@ -45,7 +42,6 @@ public class NavigationService extends Service {
 
 	/** Telenav stops listing the route after this many meters. */
 	private static final int MAX_EDGES_LENGTH = 320000;
-	private static final long REVERSE_GEOCODE_TIMEOUT_SECONDS = 5;
 
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
 	private OsmandApplication app;
@@ -226,7 +222,7 @@ public class NavigationService extends Service {
 			if (maxResults <= 0) {
 				return addresses;
 			}
-			String text = lookupAddress(new LatLon(latitude, longitude));
+			String text = AddressLookup.lookup(app, new LatLon(latitude, longitude));
 			if (text != null && !text.isEmpty()) {
 				Address address = new Address(java.util.Locale.getDefault());
 				address.setAddressLine(0, text);
@@ -338,23 +334,5 @@ public class NavigationService extends Service {
 		}
 		mainHandler.post(command);
 		return id;
-	}
-
-	/** OsmAnd's offline reverse geocoder is asynchronous: wait for it, but not for long. */
-	@Nullable
-	private String lookupAddress(@NonNull LatLon point) {
-		String[] result = new String[1];
-		CountDownLatch done = new CountDownLatch(1);
-		mainHandler.post(() -> app.getGeocodingLookupService().lookupAddress(
-				new AddressLookupRequest(point, address -> {
-					result[0] = address;
-					done.countDown();
-				}, null)));
-		try {
-			done.await(REVERSE_GEOCODE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-		}
-		return result[0];
 	}
 }
