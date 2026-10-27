@@ -73,7 +73,8 @@ exécute avec OsmAnd :
 | `setFastestRoute`, `setShortestRoute`, `setAvoidingTollwayRoute` | change le profil de calcul et recalcule |
 
 Pas faits : `SearchPoi`, `SearchAroundPoi`, `SearchCategoryPoi` (liste vide), `resetNavAppSettings`,
-`startNavFromEVRout`, `setEconomicalRoute` (OsmAnd n'a pas ce style).
+`startNavFromEVRout`, `setEconomicalRoute` (OsmAnd n'a pas ce style). Contrairement à Telenav,
+`setShortestRoute` donne vraiment le plus court (Telenav le traite comme le plus rapide).
 
 État du véhicule (`VehicleSettings`) : trois informations sont appliquées aux réglages d'OsmAnd, pour tous les
 profils (hors navigation, le profil actif est « Parcourir la carte », pendant le guidage c'est « Voiture »).
@@ -88,8 +89,7 @@ profils (hors navigation, le profil actif est « Parcourir la carte », pendant 
 
 Le reste (batterie de traction, carburant, rapport, vitesse, capteurs, angle de volant, langue de l'interface) n'a
 pas d'équivalent dans OsmAnd et est reçu puis ignoré. Un plugin VehicleMetrics alimenté par la voiture au lieu de
-l'OBD serait possible (`OBDDataComputer.acceptValue`) mais n'est pas fait. Contrairement à Telenav,
-`setShortestRoute` donne vraiment le plus court (Telenav le traite comme le plus rapide).
+l'OBD serait possible (`OBDDataComputer.acceptValue`) mais n'est pas fait.
 
 ## Ce qui n'est pas repris (à faire si besoin)
 
