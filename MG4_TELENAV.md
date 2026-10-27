@@ -73,8 +73,22 @@ exécute avec OsmAnd :
 | `setFastestRoute`, `setShortestRoute`, `setAvoidingTollwayRoute` | change le profil de calcul et recalcule |
 
 Pas faits : `SearchPoi`, `SearchAroundPoi`, `SearchCategoryPoi` (liste vide), `resetNavAppSettings`,
-`startNavFromEVRout`, `setEconomicalRoute` (OsmAnd n'a pas ce style) ; l'état du véhicule (batterie,
-carburant, rapport, capteurs, unités, langues, jour/nuit) est reçu et ignoré. Contrairement à Telenav,
+`startNavFromEVRout`, `setEconomicalRoute` (OsmAnd n'a pas ce style).
+
+État du véhicule (`VehicleSettings`) : trois informations sont appliquées aux réglages d'OsmAnd, pour tous les
+profils (hors navigation, le profil actif est « Parcourir la carte », pendant le guidage c'est « Voiture »).
+- **Jour/nuit** (`onDayNightModeChanged`, 0 = jour) : le thème de la carte suit la voiture pour les profils dont
+  le thème est automatique, jamais choisi par l'utilisateur ou posé par la voiture ; un autre choix reste. La
+  carte est redessinée.
+- **Unité** (`onUpdateUnitChange`, 1 = métrique, 2 = impérial) : fixée quand la valeur de la voiture change
+  (`KILOMETERS_AND_METERS`, sinon `MILES_AND_YARDS` au Royaume-Uni ou `MILES_AND_FEET`) ; un choix ultérieur dans
+  OsmAnd reste jusqu'au prochain changement de la voiture.
+- **Langue de la voix** (`onTtsLanguageChanged`, code SAIC comme `FRE-EU`, table de Telenav) : seulement si la voix
+  `xx-tts` est déjà sur l'appareil (rien n'est téléchargé).
+
+Le reste (batterie de traction, carburant, rapport, vitesse, capteurs, angle de volant, langue de l'interface) n'a
+pas d'équivalent dans OsmAnd et est reçu puis ignoré. Un plugin VehicleMetrics alimenté par la voiture au lieu de
+l'OBD serait possible (`OBDDataComputer.acceptValue`) mais n'est pas fait. Contrairement à Telenav,
 `setShortestRoute` donne vraiment le plus court (Telenav le traite comme le plus rapide).
 
 ## Ce qui n'est pas repris (à faire si besoin)
@@ -111,8 +125,8 @@ Les informations du combiné, essayées avec un faux `com.saicmotor.adapterservi
 (même AIDL) pendant une conduite simulée de 12 km : les appels arrivent sur les bonnes méthodes, la distance
 de manœuvre décroît régulièrement, les icônes (virages, ronds-points), les voies, la limite de vitesse et la
 fin de navigation sont envoyées, les broadcasts sont reçus. Le faux service appelle aussi le callback : ordres
-(Maison, `goHome`, `stopNav`, zoom, profils de route, adresse courante) et état du véhicule sont reçus et
-exécutés. Le vrai `MapService` n'a pas été essayé.
+(Maison, `goHome`, `stopNav`, zoom, profils de route, adresse courante) et état du véhicule (jour/nuit, unité,
+langue de la voix) sont reçus et exécutés. Le vrai `MapService` n'a pas été essayé.
 
 Sur Android 10 et plus, le système bloque le lancement d'une activité depuis un service en arrière-plan
 (`BAL_BLOCK`, visible sur l'émulateur) : `FOREGROUND=1` n'y ramène donc pas l'application au premier plan.

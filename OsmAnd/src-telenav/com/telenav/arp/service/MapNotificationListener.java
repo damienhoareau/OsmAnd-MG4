@@ -36,8 +36,9 @@ import java.util.Locale;
 /**
  * What the SAIC adapter service's MapService calls on the map app (Telenav's SAICMapNotificationListener):
  * the commands of the voice assistant and the dashboard (go home, go to a place, zoom, route preferences)
- * and the car's state. The commands are carried out by OsmAnd; the car's state (battery, fuel, gear,
- * sensors, units, languages...) is not used, so those calls are ignored.
+ * and the car's state. The commands are carried out by OsmAnd. Of the car's state, the day/night mode, the
+ * distance unit and the voice language are applied to OsmAnd's settings (VehicleSettings); the rest (battery,
+ * fuel, gear, speed, sensors, interface language) has no counterpart in OsmAnd and is ignored.
  *
  * Not carried out: the place searches (they answer with an empty list), resetNavAppSettings,
  * startNavFromEVRout and the economical route (OsmAnd has no such style).
@@ -48,9 +49,11 @@ final class MapNotificationListener extends IMapNotificationListener.Stub {
 
 	private final OsmandApplication app;
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
+	private final VehicleSettings vehicle;
 
 	MapNotificationListener(@NonNull OsmandApplication app) {
 		this.app = app;
+		this.vehicle = new VehicleSettings(app);
 	}
 
 	// ---- commands ----
@@ -247,7 +250,7 @@ final class MapNotificationListener extends IMapNotificationListener.Stub {
 		return new ArrayList<>();
 	}
 
-	// ---- the car's state: not used ----
+	// ---- the car's state ----
 
 	@Override
 	public void onEnduranceMileageChanged(int mileageInKm) {
@@ -255,10 +258,12 @@ final class MapNotificationListener extends IMapNotificationListener.Stub {
 
 	@Override
 	public void onDayNightModeChanged(int mode) {
+		mainHandler.post(() -> vehicle.dayNight(mode));
 	}
 
 	@Override
 	public void onTtsLanguageChanged(String language) {
+		mainHandler.post(() -> vehicle.voiceLanguage(language));
 	}
 
 	@Override
@@ -315,6 +320,7 @@ final class MapNotificationListener extends IMapNotificationListener.Stub {
 
 	@Override
 	public void onUpdateUnitChange(int unit) {
+		mainHandler.post(() -> vehicle.unit(unit));
 	}
 
 	@Override
