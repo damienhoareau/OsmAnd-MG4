@@ -82,7 +82,15 @@ carburant, rapport, capteurs, unités, langues, jour/nuit) est reçu et ignoré.
 - Dans `NavigationService` : la recherche de lieux (`getPoiList`, `getPoiDetail`, `geocode`), les cartes
   de stationnement et l'âge de la carte. Ils répondent comme Telenav sans résultat (liste vide ou `null`).
   Les images du combiné (`getClusterMapImage`, `getClusterTurnImage`) renvoient des bundles vides.
-- `ResumeTripProvider`, les services internes et l'écran de cluster (`:cluster`).
+- `ResumeTripProvider` (voir ci-dessous), les services internes et l'écran de cluster (`:cluster`).
+- `ResumeTripProvider` : `ContentProvider` de Telenav (autorité `com.telenav.arp.appconn.data.store.resumetripprovider`,
+  processus `:resumeTrip`, `singleUser="false"`). Il fait partie de la « reprise du trajet » : Telenav écrit le
+  trajet en cours dans `resumeData/resumeTrip.data` (destination, étapes, options d'évitement, arêtes de la route,
+  heure d'arrêt) et, au lancement, si `RESUME_TRIP` est actif et qu'aucune navigation ne tourne, recalcule la route
+  depuis la position actuelle (seulement si l'arrêt date de moins de 4 h). OsmAnd a sa propre reprise
+  (`RestoreNavigationHelper`, vue en action pendant les essais), donc le provider n'est pas repris. Le code de la
+  classe n'est pas dans le décompilé : ceci vient du manifeste et des classes qui l'utilisent. Ce qui resterait à
+  vérifier sur la voiture : qu'aucune autre app ne lit ce provider par son autorité (rien ne le laisse voir).
 - L'icône d'origine (l'icône OsmAnd Nightly est conservée) et `launchMode=singleInstance` (un alias hérite
   du mode de l'activité cible).
 
