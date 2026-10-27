@@ -57,6 +57,15 @@ tierces. Les deux sont envoyés ici (`NavNotifier`, démarré par `ClusterInitPr
 OsmAnd n'émet aucun événement au démarrage du guidage : `NavNotifier` surveille son état une fois par
 seconde. Le nombre de feux rouges reste à 0.
 
+La carte « Navigation » du lanceur de la voiture (`com.saicmotor.hmi.launcher`, `NaviCardView`) est aussi un
+consommateur de ces informations : pendant un guidage elle affiche le nom de la rue, la distance et l'icône de
+virage (le lanceur convertit le numéro d'icône en image, donc la table `ManeuverIcons` compte). Elle n'affiche
+jamais de carte (que du texte et des images). Ses boutons Domicile et Travail ne sont actifs que si l'adaptateur a
+été prévenu qu'une adresse existe : `notifySetHomeAddress` et `notifySetWorkAddress` (transactions 24 et 25 de
+`IMapService`), que `NavNotifier` envoie à la connexion puis à chaque changement des favoris Domicile et Travail.
+Sans cela le lanceur affiche « Le domicile n'est pas encore défini. » sans rien envoyer. Un clic sur un bouton actif
+appelle `goHome`/`goOffice` du callback.
+
 Le lien avec `MapService` reste établi tant que l'app vit (comme chez Telenav) et enregistre un **callback**
 (`IMapNotificationListener.aidl`, 59 méthodes dans l'ordre d'origine, classes `Address`, `AdapterGPSInfo`,
 `AdapterSatellitesInfo` et `EVRoutPoiInfo` reprenant la disposition des parcels d'origine). Par lui,

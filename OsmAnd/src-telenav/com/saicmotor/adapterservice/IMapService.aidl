@@ -31,8 +31,8 @@ interface IMapService {
     void unused21();
     void notifyNavigating(boolean navigating);
     void notifyRoutePlanning(boolean planning);
-    void unused24();
-    void unused25();
+    void notifySetHomeAddress(boolean set);
+    void notifySetWorkAddress(boolean set);
     void unused26();
     void unused27();
     void unused28();

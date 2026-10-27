@@ -3615,13 +3615,13 @@ public class OsmandSettings {
 			new StringPreference(this, "hiking_routes_last_selected_value", "").makeProfile();
 
 	public final OsmandPreference<Boolean> FAVORITES_FREE_ACCOUNT_CARD_DISMISSED =
-			new BooleanPreference(this, "favorites_free_account_card_dismissed", false).makeGlobal();
+			new BooleanPreference(this, "favorites_free_account_card_dismissed", true).makeGlobal();
 
 	public final OsmandPreference<Boolean> TRACKS_FREE_ACCOUNT_CARD_DISMISSED =
-			new BooleanPreference(this, "tracks_free_account_card_dismissed", false).makeGlobal();
+			new BooleanPreference(this, "tracks_free_account_card_dismissed", true).makeGlobal();
 
 	public final OsmandPreference<Boolean> CONFIGURE_PROFILE_FREE_ACCOUNT_CARD_DISMISSED =
-			new BooleanPreference(this, "configure_profile_free_account_card_dismissed", false).makeGlobal();
+			new BooleanPreference(this, "configure_profile_free_account_card_dismissed", true).makeGlobal();
 
 	public final OsmandPreference<Boolean> MAP_SCREEN_LAYOUT_CARD_DISMISSED =
 			new BooleanPreference(this, "map_screen_layout_card_dismissed", false).makeGlobal();

@@ -83,6 +83,15 @@ final class SaicCluster {
 		call("notifyNavigating", s -> s.notifyNavigating(navigating));
 	}
 
+	/** The launcher's Navigation card enables its Home button only once the adapter has been told there is a home. */
+	void homeAddressSet(boolean set) {
+		call("notifySetHomeAddress", s -> s.notifySetHomeAddress(set));
+	}
+
+	void workAddressSet(boolean set) {
+		call("notifySetWorkAddress", s -> s.notifySetWorkAddress(set));
+	}
+
 	void maneuver(int iconId, int distance, @NonNull String direction) {
 		call("notifyManeuverInfo", s -> s.notifyManeuverInfo(iconId, distance, direction));
 	}

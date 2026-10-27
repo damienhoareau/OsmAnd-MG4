@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import net.osmand.data.SpecialPointType;
 import net.osmand.data.ValueHolder;
 import net.osmand.plus.OsmandApplication;
 import net.osmand.plus.routing.IRouteInformationListener;
@@ -51,6 +52,9 @@ final class NavNotifier implements IRouteInformationListener {
 	private int speedLimit = Integer.MIN_VALUE;
 	private int remaining = Integer.MIN_VALUE;
 	private int minutes = Integer.MIN_VALUE;
+	/** Whether the adapter was last told there is a home or a work address (null: not told since it connected). */
+	private Boolean homeSent;
+	private Boolean workSent;
 
 	/** OsmAnd gives no event when the guidance starts (the route is calculated before), so this keeps watching. */
 	private final Runnable tick = new Runnable() {
@@ -74,6 +78,9 @@ final class NavNotifier implements IRouteInformationListener {
 
 	/** The cluster service starts empty: send it the whole state. */
 	private void onClusterConnected() {
+		homeSent = null;
+		workSent = null;
+		syncAddresses();
 		if (running) {
 			resetSent();
 			cluster.navigating(true);
@@ -107,6 +114,7 @@ final class NavNotifier implements IRouteInformationListener {
 
 	/** Starts, updates or stops the notifications according to whether OsmAnd is guiding. */
 	private void evaluate() {
+		syncAddresses();
 		if (NavSession.get(app).isActive()) {
 			if (!running) {
 				begin();
@@ -114,6 +122,20 @@ final class NavNotifier implements IRouteInformationListener {
 			update();
 		} else {
 			stop();
+		}
+	}
+
+	/** Tells the adapter when a home or work address appears or goes (Telenav does it at start and on change). */
+	private void syncAddresses() {
+		boolean home = app.getFavoritesHelper().getSpecialPoint(SpecialPointType.HOME) != null;
+		boolean work = app.getFavoritesHelper().getSpecialPoint(SpecialPointType.WORK) != null;
+		if (homeSent == null || homeSent != home) {
+			homeSent = home;
+			cluster.homeAddressSet(home);
+		}
+		if (workSent == null || workSent != work) {
+			workSent = work;
+			cluster.workAddressSet(work);
 		}
 	}
 

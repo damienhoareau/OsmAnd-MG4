@@ -81,6 +81,9 @@ public class ConfigureMapMenu {
 
 	private static final Log LOG = PlatformUtil.getLog(ConfigureMapMenu.class);
 
+	/** The "Routes" section of the map settings (cycle, MTB, hiking, ski): not for a car. */
+	private static final boolean SHOW_ROUTES_SECTION = false;
+
 	public static final String ALPINE_HIKING_SCALE_SCHEME_ATTR = "alpineHikingScaleScheme";
 
 	public static final String CURRENT_TRACK_COLOR_ATTR = "currentTrackColor";
@@ -231,6 +234,14 @@ public class ConfigureMapMenu {
 
 	private void createRouteAttributeItems(@NonNull List<RenderingRuleProperty> customRules,
 			@NonNull ContextMenuAdapter adapter, @NonNull MapActivity activity, boolean nightMode) {
+		if (!SHOW_ROUTES_SECTION) {
+			// Cycle, MTB, hiking and ski routes are of no use in a car. Their properties still have to leave
+			// customRules, or they would show up among the other map attributes.
+			for (String attrName : RouteUtils.getRoutesAttrsNames(customRules)) {
+				customRules.remove(getPropertyForAttr(customRules, attrName));
+			}
+			return;
+		}
 		adapter.addItem(new ContextMenuItem(ROUTES_CATEGORY_ID)
 				.setCategory(true)
 				.setTitleId(R.string.rendering_category_routes, activity)
